@@ -171,7 +171,18 @@ function singlecapital()
 
       end
     end
-    
-    return vcat(store_matrix, store_matrix2)
+    npzwrite("./data/model_singlecapital.npz", vcat(store_matrix, store_matrix2))
+    res = Dict("res" => vcat(store_matrix, store_matrix2), 
+        "A" => A,
+        "phi" => phi,
+        "alpha_k" => alpha_k_hat,
+        "c" => consumption_investment,
+        "i" => investment_capital,
+        "alpha_c_hat" => baseline.alpha_k_hat,
+        "tech" => alpha_c2,
+        "sigma_z" => sigma_z)
+    npzwrite("./data/model_singlecapital_params.npz", res)
+    return res
+
 end
 

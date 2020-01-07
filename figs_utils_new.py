@@ -5,6 +5,7 @@ import scipy.optimize as optimize
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gsp
 import seaborn as sns
+import os
 
 colors = sns.color_palette()
 
@@ -244,7 +245,7 @@ class Model(object):
         xmin, ymin = .0, -.8
         xmax, ymax = 1., .8
 
-        f = plt.figure(figsize = (13, 6.5))
+        f = plt.figure(figsize = (10, 5))
         gs0 = gsp.GridSpec(1, 7)
 
         gs00 = gsp.GridSpecFromSubplotSpec(9, 1, subplot_spec=gs0[:3])
@@ -271,10 +272,10 @@ class Model(object):
                            lw=3, color=colors[3], alpha=.2)
         ax1_t.axvline(pii[ind_med_r, 0], lw=1, linestyle='--', color='k', alpha=.6)
         ax1_t.set_xlim([0, 1])
-        ax1_t.set_ylabel(r'$d^*_1$', fontsize=15, rotation=0)
+        ax1_t.set_ylabel(r'$d^*_1$', fontsize=13, rotation=0)
         ax1_t.yaxis.set_label_coords(-0.18, 0.5)
-        ax1_t.set_title("Investment ratio of the first capital", fontsize=15, y=1.02)
-        ax1_t.legend(loc='best', fontsize=12)
+        ax1_t.set_title("Investment ratio of the first capital", fontsize=13, y=1.02)
+        ax1_t.legend(loc='best', fontsize=10)
         if left_top_ylim:
             ax1_t.set_ylim(left_top_ylim)
 
@@ -326,7 +327,7 @@ class Model(object):
         ax2_c.plot(0, 0, label='without robustness', color='k', alpha=.7)
         ax2_c.plot(0, 0, label='robust control under baseline', color=colors[3], alpha=.7)
         ax2_c.plot(0, 0, label='robust control under worst-case', color=colors[0], alpha=.7)
-        ax2_c.legend(fontsize=12)
+        ax2_c.legend(fontsize=10)
 
         ax2_t.plot(pii[1:, 0], f_noR_dist.sum(1), color='k', lw=2, alpha=.7)
         ax2_t.fill_between(pii[1:, 0], 0, f_noR_dist.sum(1), color='k', alpha=.1)
@@ -1101,3 +1102,337 @@ def stationary_uncertaintyprice2(density, vec, I):
         price[i] = dummy[np.argmax(density[i*segment:(i+1)*segment])]
 
     return price, price_density
+
+def Figure3():
+    if os.path.exists("./data/model_singlecapital.npz"):
+        model_1cap = np.load('./data/model_singlecapital.npz')
+        sigma_z_1cap = np.load("./data/model_singlecapital_params.npz")['sigma_z']
+    else:
+        print('Model has not been estimated yet')
+        return None
+    z_grid = np.linspace(-.8, .6, 100)
+    xi_grid = np.zeros(100)
+    xi2_grid = np.zeros(100)
+
+    s2 = np.dot(sigma_z_1cap, sigma_z_1cap)
+    az_k, ka_k = model_1cap[-5, 6:8]
+    az_b, ka_b = model_1cap[-1, 6:8]
+
+    xi0_k, xi1_k, xi2_k = model_1cap[-5, -3:]  # model_asym_HSHS["xi0"],model_asym_HSHS["xi1"]
+    xi0_b, xi1_b, xi2_b = model_1cap[-1, -3:]  # model_asym_HSHS2["xi0"],model_asym_HSHS2["xi1"]
+
+
+    for i, z in enumerate(z_grid):
+        xi_grid[i] = xi0_k + 2*xi1_k*z + xi2_k*z**2
+        xi2_grid[i] = xi0_b + 2*xi1_b*z + xi2_b*z**2
+        
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.plot(z_grid, xi_grid, color='k', lw=2.5, label = r"$\xi^{[\kappa]}(z)$")
+    ax.plot(z_grid, xi2_grid, color='gray', lw=2.5, alpha=.8, label = r"$\xi^{[\beta]}(z)$")
+    ax.axhline(xi0_k, color='k', linestyle='--', lw=1, alpha=.9)
+    ax.axhline(.2**2/2, color='k', linestyle=':', lw=1, alpha=.4)
+    ax.text(-.5, .0052, r"$\xi_0$", fontsize=14)
+    ax.text(-.5, .017, r"$\frac{\mathsf{q}^2}{2}$", fontsize=15)
+    #ax.arrow(-.4, .01, .05, -.002)
+
+    ax.axhline(0, color='k', lw=1, alpha=.8)
+    ax.axvline(0, color='k', lw=1, alpha=.8)
+    ax.legend(loc=1, fontsize=13, framealpha=1.)
+    ax.set_xlabel(r"$Z$", fontsize=14)
+    #ax[1].plot(z_grid, norm.pdf(z_grid, loc=az_k/ka_k, scale=np.sqrt(s2/(2*ka_k))))
+    #ax[1].plot(z_grid, norm.pdf(z_grid, loc=az_b/ka_b, scale=np.sqrt(s2/(2*ka_b))))
+    #ax[1].axhline(0, color='k', lw=1, alpha=.8)
+    #ax[1].axvline(0, color='k', lw=1, alpha=.8)
+
+    ax.set_ylim([-.001, .023])
+    ax.set_xlim([-.7, .7])
+    plt.tight_layout()
+
+def Figure5():
+    if os.path.exists("./data/model_sym_HS_p.npz") and os.path.exists("./data/model_asym_HS_p.npz"):
+        mm_sym_p = Model(np.load('./data/model_sym_HS_p.npz'))
+        mm_asym_p = Model(np.load("./data/model_asym_HS_p.npz"))
+    else:
+        print('Model has not been estimated yet')
+        return None
+    model = mm_sym_p
+    shock = 0
+    dim = 'R'
+
+    if dim=='R':
+        dec1 = 1
+        dec9 = 2
+    elif dim=='Z':
+        dec1 = 3
+        dec9 = 4
+
+    fig, ax = plt.subplots(1, 2, figsize=(12, 3.5), sharey=True) #, sharex=True)
+
+    ax[0].plot(100*model.R_irf[:, 2, shock, 0], lw=3, color='k', label='without robustness')
+    #ax[0].plot(100*model.R_irf[:, 2, shock, dec9], lw=1, color='k', linestyle='-.', alpha=.8)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 2, shock, dec1], 100*model.R_irf[:, 2, shock, 0], 
+    #                        color='k', alpha=.1)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 2, shock, 0], 100*model.R_irf[:, 2, shock, dec9], 
+    #                        color='k', alpha=.1)
+    ax[0].plot(100*model.R_irf[:, 0, shock, 0], lw=3, color=colors[3], linestyle='--', 
+            label='robust control under baseline')
+    #ax[0].plot(100*model.R_irf[:, 0, shock, dec9], lw=1, color=colors[3], linestyle='-.', alpha=.8)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 0, shock, dec1], 100*model.R_irf[:, 0, shock, 0], 
+    #                       color=colors[3], alpha=.1)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 0, shock, 0], 100*model.R_irf[:, 0, shock, dec9], 
+    #                       color=colors[3], alpha=.1)
+    ax[0].plot(100*model.R_irf[:, 1, shock, 0], lw=3, color=colors[0],  linestyle=':', 
+            label='robust control under worst-case')
+    #ax[0].plot(100*model.R_irf[:, 1, shock, dec9], lw=1, color=colors[0], linestyle='-.', alpha=.8)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 1, shock, dec1], 100*model.R_irf[:, 1, shock, 0], 
+    #                       color=colors[0], alpha=.1)
+    #ax[0].fill_between(np.arange(model.T), 100*model.R_irf[:, 1, shock, 0], 100*model.R_irf[:, 1, shock, dec9], 
+    #                       color=colors[0], alpha=.1)
+    ax[0].axhline(0, color='k', lw=1)
+    ax[0].set_title("Symmetric Returns", fontsize=15)
+    ax[0].set_ylabel(r'$R$', fontsize=15, rotation=0)
+    ax[0].yaxis.set_label_coords(-0.11, .5)
+    #ax[0].set_ylim([-.005, .27])
+    ax[0].legend(loc='best', fontsize=12)
+    ax[0].set_xlabel("Horizon", fontsize=15)
+
+    model = mm_asym_p
+
+    ax[1].plot(100*model.R_irf[:, 2, shock, 0], lw=3, color='k', label='without robustness')
+    #ax[1].plot(100*model.R_irf[:, 2, shock, dec9], lw=1, color='k', linestyle='-.', alpha=.8)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 2, shock, dec1], 100*model.R_irf[:, 2, shock, 0], 
+    #                        color='k', alpha=.1)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 2, shock, 0], 100*model.R_irf[:, 2, shock, dec9], 
+    #                        color='k', alpha=.1)
+    ax[1].plot(100*model.R_irf[:, 0, shock, 0], lw=3, color=colors[3],  linestyle='--', 
+            label='robust control under baseline')
+    #ax[1].plot(100*model.R_irf[:, 0, shock, dec9], lw=1, color=colors[3], linestyle='-.', alpha=.8)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 0, shock, dec1], 100*model.R_irf[:, 0, shock, 0], 
+    #                       color=colors[3], alpha=.1)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 0, shock, 0], 100*model.R_irf[:, 0, shock, dec9], 
+    #                       color=colors[3], alpha=.1)
+    ax[1].plot(100*model.R_irf[:, 1, shock, 0], lw=3, color=colors[0],  linestyle=':',
+            label='robust control under worst-case')
+    #ax[1].plot(100*model.R_irf[:, 1, shock, dec9], lw=1, color=colors[0], linestyle='-.', alpha=.8)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 1, shock, dec1], 100*model.R_irf[:, 1, shock, 0], 
+    #                       color=colors[0], alpha=.1)
+    #ax[1].fill_between(np.arange(model.T), 100*model.R_irf[:, 1, shock, 0], 100*model.R_irf[:, 1, shock, dec9], 
+    #                       color=colors[0], alpha=.1)
+    ax[1].axhline(0, color='k', lw=1)
+    ax[1].set_title("Asymmetric Returns", fontsize=15)
+    ax[1].set_ylim([-.005, .2]) #.3])
+    #ax[1].legend(loc='best')
+    ax[1].set_xlabel("Horizon", fontsize=15)
+
+    plt.tight_layout()
+    # plt.savefig(figures_path + '2cap_irfR_k2_HS.pdf')
+
+def Figure7():
+    if os.path.exists("./data/model_asym_HS_p.npz"):
+        mm_asym_p = Model(np.load("./data/model_asym_HS_p.npz"))
+    else:
+        print('Model has not been estimated yet')
+        return None
+    model = mm_asym_p
+
+    ind_ld_z, ind_med_z, ind_ud_z = model.ind_ld_z, model.ind_med_z, model.ind_ud_z    
+    ind_ld_r, ind_med_r, ind_ud_r = model.ind_ld_r, model.ind_med_r, model.ind_ud_r    
+
+    pii, rr, zz = model.pii, model.rr, model.zz    
+    mu_pii_noR, mu_pii, mu_pii_wc = model.mu_pii_noR, model.mu_pii, model.mu_pii_wc
+    mu_z, mu_z_wc = model.mu_z, model.mu_z_wc
+
+    #inn_r = slice(model.ind_ld_r_noR, model.ind_ud_r_noR)
+    inn_r = slice(1, -1)
+    fig, ax = plt.subplots(1, 2, figsize=(12, 3.5))
+
+    ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_med_z], color='k', lw=3, label="under baseline")
+    #ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_ld_z], color='k', lw=2, linestyle='--', alpha=.4)
+    ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_ud_z], color='k', lw=1, linestyle='-.', alpha=.4)
+    ax[0].fill_between(pii[inn_r, 0], mu_z[inn_r, ind_ld_z], mu_z[inn_r, ind_ud_z], 
+                                color='k', alpha=.1, lw=3)
+    ax[0].plot(pii[inn_r, 0], mu_z_wc[inn_r, ind_med_z], color=colors[0], alpha=.8, lw=3, linestyle=':', 
+                    label="under worst-case")
+    #ax[0].plot(pii[inn_r, 0], mu_z_wc[inn_r, ind_ld_z], color=colors[0], linestyle='--', lw=2, alpha=.5)
+    ax[0].plot(pii[inn_r, 0], mu_z_wc[inn_r, ind_ud_z], color=colors[0], linestyle='-.', lw=1, alpha=.5)
+    ax[0].fill_between(pii[inn_r, 0], mu_z_wc[inn_r, ind_ld_z], mu_z_wc[inn_r, ind_ud_z], 
+                                color=colors[0], alpha=.2, lw=3)
+    ax[0].axhline(0, color='k', lw=1, linestyle='--')
+    ax[0].axvline(pii[ind_med_r, 0], color='k', lw=1, linestyle='--')
+    ax[0].set_title(r'$\mu_Z(Z, R)$', fontsize=15) 
+    ax[0].set_xlabel(r'$R$', fontsize=15)
+    ax[0].set_ylim([-.014, .0105])
+    ax[0].legend(loc='best', fontsize=12)
+
+    shock=0
+
+    ax[1].plot(model.Z_irf[:600, 1, shock, 0], lw=3, color=colors[0], linestyle=':')
+    ax[1].plot(model.Z_irf[:600, 2, shock, 0], lw=3, color='k')
+    ax[1].axhline(0, color='k', lw=1, linestyle='--')
+    ax[1].set_title("IRF of Z to idiosyncratic capital shock", fontsize=15)
+    ax[1].set_xlabel("Horizon", fontsize=15)
+    #ax[1].set_ylim([-.001, .01])
+    plt.tight_layout()
+
+    # plt.savefig(figures_path + '2cap_asymZ_k2_HS.pdf')
+
+def Figure8():
+    if os.path.exists("./data/model_singlecapital.npz"):
+        model_1cap = np.load('./data/model_singlecapital.npz')
+        states = pd.read_csv('./data/states.csv', index_col=0)
+
+        T = len(states.index)
+        z_path = np.asarray(states['filtered_state']).reshape(1, T)
+
+    else:
+        print('Single capital stock model has not been estimated yet')
+        return None
+    #-----------------------------------
+    # Unstructured uncertainty prices
+    #-----------------------------------
+    uncertainty_prices   = np.ones((z_path.shape[1], 1)) @ -model_1cap[3, 17:19].reshape(1, 2)
+
+    #-----------------------------------
+    # Structured uncertainty prices
+    #-----------------------------------
+    H_0_k, H_1_k = model_1cap[-5, 17:19].reshape(2, 1), model_1cap[-5, 19:21].reshape(2, 1)
+    H_0_b, H_1_b = model_1cap[-1, 17:19].reshape(2, 1), model_1cap[-1, 19:21].reshape(2, 1)
+
+
+    uncertainty_prices_k = -(H_0_k + H_1_k @ z_path)
+    uncertainty_prices_b = -(H_0_b + H_1_b @ z_path)
+
+    UP = pd.DataFrame(data=np.hstack([uncertainty_prices, 
+                                    uncertainty_prices_k.T, 
+                                    uncertainty_prices_b.T, 
+                                    states.values]), 
+                    index=pd.date_range(states.index[0], states.index[-1], freq='Q'), 
+                    columns=['price_1_u', 'price_2_u', 'price_1_k', 'price_2_k', 'price_1_b', 'price_2_b', 
+                            'cons_growth', 'exp_cons_growth', 'filtered_state'])
+
+    #=================================
+    # PLOT
+    #=================================
+    start_date = '1948-01-31'
+
+    import matplotlib.lines as mlines
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.despine()
+
+    # ax.axhline(0, lw=1, color='k', alpha=.9)
+    #plt.axhline(uncertainty_prices_unstructured[0], color=colors[7], linestyle='--', lw=2)
+    #plt.axhline(uncertainty_prices_unstructured[1], color=colors[7], lw=2)
+    UP['price_1_u'].plot(ax=ax, lw=2, linestyle='--', color=colors[7], alpha=.9)
+    UP['price_2_u'].plot(ax=ax, lw=2, color=colors[7], alpha=.9)
+    UP['price_1_k'].plot(ax=ax, lw=2.5, linestyle='--', color=colors[1], alpha=.9)
+    UP['price_2_k'].plot(ax=ax, lw=2.5, color=colors[1], alpha=.9)
+    UP['price_1_b'].plot(ax=ax, lw=2.5, color=colors[0], linestyle='--', alpha=.9)
+    UP['price_2_b'].plot(ax=ax, lw=2.5, color=colors[0], alpha=.9)
+
+
+    line1 = mlines.Line2D([], [], color=colors[7], lw=2)
+    line2 = mlines.Line2D([], [], color=colors[1], lw=2.5, alpha=.9)
+    line3 = mlines.Line2D([], [], color=colors[0], lw=2.5, alpha=.9)
+
+    ax.legend([line1, line2, line3], 
+            [r'Constant $\xi$', r'State-dependent $\xi^{[\kappa]}$', r'State-dependent $\xi^{[\beta]}$'], 
+            loc='best', fontsize = 12, frameon=True, framealpha=1.0)
+
+    ax.tick_params(axis='both', which='major', labelsize = 10)
+    ax.set_ylim([-0.1, .2])
+
+    # NBER_Shade(ax, start_date)
+    # plt.tight_layout()
+    # plt.savefig(figures_path + 'uncertainty_prices.pdf')
+
+def stationary_uncertaintyprice2(density, vec, I):
+    
+    length = density.shape[0]
+    segment = I - 0
+    numb_segment = int(round(length/segment))
+
+    price = np.zeros(numb_segment)
+    price_density = np.zeros(numb_segment)
+
+    for i in range(numb_segment):
+        price_density[i] = max(density[i*segment:(i+1)*segment])
+        dummy = vec[i*segment:(i+1)*segment]
+        price[i] = dummy[np.argmax(density[i*segment:(i+1)*segment])]
+
+    return price, price_density
+
+def Figure9():
+    if os.path.exists("./data/model_asym_HSHS2.npz"):
+        m1 = Model(np.load("./data/model_sym_HSHS.npz"))
+        m2 = Model(np.load("./data/model_asym_HSHS.npz"))
+        m1_b = Model(np.load("./data/model_sym_HSHS2.npz"))
+        m2_b = Model(np.load("./data/model_asym_HSHS2.npz"))
+
+    # Single capital economy
+    stdev_z_1cap = m1.stdev_z_1cap
+    x = np.linspace(.05, .35, 1000)
+    #h1_cap1 = norm(loc= -H_0[0], scale = H_1[0] * stdev_z_1cap)
+    #hz_cap1 = norm(loc= -H_0[1], scale = H_1[1] * stdev_z_1cap)
+
+    # Symmetric capital stocks
+    h12_vec, h12_density = stationary_uncertaintyprice2(m1.h12_density, m1.h12_vec, m1.I)
+    hz_vec, hz_density = stationary_uncertaintyprice2(m1.hz_density, m1.hz_vec, m1.I)
+
+    h12_b_vec, h12_b_density = stationary_uncertaintyprice2(m1_b.h12_density, m1_b.h12_vec, m1_b.I)
+    hz_b_vec, hz_b_density = stationary_uncertaintyprice2(m1_b.hz_density, m1_b.hz_vec, m1_b.I)
+
+    h12_asym_vec, h12_asym_density = stationary_uncertaintyprice2(m2.h12_density, m2.h12_vec, m2.I)
+    hz_asym_vec, hz_asym_density = stationary_uncertaintyprice2(m2.hz_density, m2.hz_vec, m2.I)
+
+    h12_asym_b_vec, h12_asym_b_density = stationary_uncertaintyprice2(m2_b.h12_density, m2_b.h12_vec, m2_b.I)
+    hz_asym_b_vec, hz_asym_b_density = stationary_uncertaintyprice2(m2_b.hz_density, m2_b.hz_vec, m2_b.I)
+
+    hz_sum = np.sum(h12_density[:-1] * abs(h12_vec[1:]-h12_vec[:-1]))
+    hz_asym_sum = np.sum(h12_asym_density[:-1] * abs(h12_asym_vec[1:]-h12_asym_vec[:-1]))
+
+    hz_b_sum = np.sum(h12_b_density[:-1] * abs(h12_b_vec[1:]-h12_b_vec[:-1]))
+    hz_asym_b_sum = np.sum(h12_asym_b_density[:-1] * abs(h12_asym_b_vec[1:]-h12_asym_b_vec[:-1]))
+
+    #=============== PLOT =========================#
+
+    fig, ax = plt.subplots(1, 2, figsize = (12, 4), sharex=True, sharey=True)
+
+    ax[0].set_title("Shock to capital", fontsize=16)
+    ax[0].plot(h12_vec, h12_density/hz_sum, lw=2, color=colors[1], 
+            label=r"Symmetric (concern about $\kappa$)")
+    ax[0].fill_between(h12_vec, 0, h12_density/hz_sum, color=colors[1], alpha=.15)
+    ax[0].plot(h12_b_vec, h12_b_density/hz_b_sum, lw=2, color=colors[0], 
+            label=r"Symmetric returns with $\xi^{[\beta]}$")
+    ax[0].plot(h12_asym_vec, h12_asym_density/hz_asym_sum, lw=2, color=colors[1], linestyle=':', 
+            label=r'Asymmetric (concern about $\kappa$)')
+    ax[0].fill_between(h12_asym_vec, 0, h12_asym_density/hz_asym_sum, color=colors[1], alpha=.1)
+    ax[0].plot(h12_asym_b_vec, h12_asym_b_density/hz_asym_b_sum, lw=2, color=colors[0], linestyle=':',
+            label=r'Asymmetric (concern about $\beta$)')
+    ax[0].fill_between(h12_asym_b_vec, 0, h12_asym_b_density/hz_asym_b_sum, color=colors[0], alpha=.1)
+    ax[0].fill_between(h12_b_vec, 0, h12_b_density/hz_b_sum, color=colors[0], alpha=.15)
+    ax[0].axhline(0, lw=1.5, color='k')
+    ax[0].axvline(0, lw=1, color='k')
+
+    ax[1].set_title("Shock to long run risk state", fontsize=16)
+    ax[1].plot(hz_vec, hz_density/hz_sum, lw=2, color=colors[1], 
+            label=r"Symmetric with $\xi^{[\kappa]}$")
+    ax[1].fill_between(hz_vec, 0, hz_density/hz_sum, color=colors[1], alpha=.15)
+    ax[1].plot(hz_asym_vec, hz_asym_density/hz_asym_sum, lw=2, color=colors[1], linestyle=':',
+            label=r"Asymmetric with $\xi^{[\kappa]}$")
+    ax[1].fill_between(hz_asym_vec, 0, hz_asym_density/hz_asym_sum, color=colors[1], alpha=.1)
+    ax[1].plot(hz_b_vec, hz_b_density/hz_b_sum, lw=2, color=colors[0], 
+            label=r"Symmetric with $\xi^{[\beta]}$")
+    ax[1].plot(hz_asym_b_vec, hz_asym_b_density/hz_asym_b_sum, lw=2, color=colors[0], linestyle=':',
+            label=r"Asymmetric with $\xi^{[\beta]}$")
+    ax[1].fill_between(hz_asym_b_vec, 0, hz_asym_b_density/hz_asym_b_sum, color=colors[0], alpha=.1)
+    ax[1].fill_between(hz_b_vec, 0, hz_b_density/hz_b_sum, color=colors[0], alpha=.15)
+
+    ax[1].axhline(0, lw=1.5, color='k')
+    ax[1].legend(loc=2, fontsize=14.5, ncol=2, frameon=True, framealpha=1.0)
+    ax[1].set_xlim([-.12, .17])
+    ax[1].axvline(0, lw=1, color='k')
+
+    plt.tight_layout()
+    # plt.savefig('local_uncertainty_prices.pdf')
+

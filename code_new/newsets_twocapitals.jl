@@ -16,7 +16,7 @@ using NPZ
 using Distributed
 
 
-function twocapitals()
+function twocapitals(symmetric_returns = 0, state_dependent_xi = 2, compute_irfs = 0)
     #==============================================================================#
     # SPECIFICATION:
     #==============================================================================#
@@ -26,10 +26,10 @@ function twocapitals()
     #compute_irfs         = parse(Int64, ARGS[4])
 
 
-    symmetric_returns    = 0
-    state_dependent_xi   = 2
+    # symmetric_returns    = 0
+    # state_dependent_xi   = 2
     optimize_over_ell    = 0
-    compute_irfs         = 0                    # need to start julia with "-p 5"
+    # compute_irfs         = 0                    # need to start julia with "-p 5"
 
     if compute_irfs == 1
         @everywhere include("newsets_utils.jl")
@@ -647,5 +647,6 @@ function twocapitals()
     "A_1cap" => A_1cap, "phi_1cap" => phi_1cap, "alpha_k_hat" => alpha_k_hat,
     "consumption_investment" => consumption_investment, "investment_capital" => investment_capital)
 
-    return results
+    npzwrite("./data/" * filename, results)
+
 end
