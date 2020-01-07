@@ -10,7 +10,7 @@ This repository contains codes and jupyter notebooks which estimates and demonst
 1. Ways to show the table in the notebook
 2. Necessary to provide estimation detail notebooks?
 3. Figures 1&2
-4. Solving models on finer grids
+4. Solving models under finer grids
 
 ## Acessing our jupyter notebook
 To access our notebook, please follow steps below:
@@ -26,7 +26,8 @@ cd [folder path name]
 ```
 git clone https://github.com/lphansen/Twisted
 ```
-3.	To download the data files for solutions(under developing)
+3.	To download the data solution files(under developing)
+
 4.	Install Julia and add Julia executabe to system environment paths.
     - For installing Julia, please visit https://julialang.org/
     - a) Mac user: 
@@ -36,6 +37,7 @@ git clone https://github.com/lphansen/Twisted
     - b) Windows user:
         - follow instructions here: http://wallyxie.com/weblog/adding-julia-windows-path-command-prompt/
         - or you can visit https://en.wikibooks.org/wiki/Introducing_Julia/Getting_started
+        
 5.  Open Julia.exe and install the following four packages:
 ```
 using Pkg
