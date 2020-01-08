@@ -1166,7 +1166,7 @@ def Figure5():
         dec1 = 3
         dec9 = 4
 
-    fig, ax = plt.subplots(1, 2, figsize=(12, 3.5), sharey=True) #, sharex=True)
+    fig, ax = plt.subplots(1, 2, figsize=(9.5, 3.5), sharey=True) #, sharex=True)
 
     ax[0].plot(100*model.R_irf[:, 2, shock, 0], lw=3, color='k', label='without robustness')
     #ax[0].plot(100*model.R_irf[:, 2, shock, dec9], lw=1, color='k', linestyle='-.', alpha=.8)
@@ -1244,7 +1244,7 @@ def Figure7():
 
     #inn_r = slice(model.ind_ld_r_noR, model.ind_ud_r_noR)
     inn_r = slice(1, -1)
-    fig, ax = plt.subplots(1, 2, figsize=(12, 3.5))
+    fig, ax = plt.subplots(1, 2, figsize=(9.5, 3.5))
 
     ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_med_z], color='k', lw=3, label="under baseline")
     #ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_ld_z], color='k', lw=2, linestyle='--', alpha=.4)
@@ -1317,7 +1317,7 @@ def Figure8():
 
     import matplotlib.lines as mlines
 
-    fig, ax = plt.subplots(figsize=(8, 4))
+    fig, ax = plt.subplots(figsize=(9.5, 4))
     sns.despine()
 
     # ax.axhline(0, lw=1, color='k', alpha=.9)
@@ -1343,7 +1343,7 @@ def Figure8():
     ax.set_ylim([-0.1, .2])
 
     # NBER_Shade(ax, start_date)
-    # plt.tight_layout()
+    plt.tight_layout()
     # plt.savefig(figures_path + 'uncertainty_prices.pdf')
 
 def stationary_uncertaintyprice2(density, vec, I):
@@ -1396,7 +1396,7 @@ def Figure9():
 
     #=============== PLOT =========================#
 
-    fig, ax = plt.subplots(1, 2, figsize = (12, 4), sharex=True, sharey=True)
+    fig, ax = plt.subplots(1, 2, figsize = (9.5, 4), sharex=True, sharey=True)
 
     ax[0].set_title("Shock to capital", fontsize=16)
     ax[0].plot(h12_vec, h12_density/hz_sum, lw=2, color=colors[1], 
@@ -1429,7 +1429,7 @@ def Figure9():
     ax[1].fill_between(hz_b_vec, 0, hz_b_density/hz_b_sum, color=colors[0], alpha=.15)
 
     ax[1].axhline(0, lw=1.5, color='k')
-    ax[1].legend(loc=2, fontsize=14.5, ncol=2, frameon=True, framealpha=1.0)
+    ax[1].legend(loc=2, fontsize=10, ncol=2, frameon=True, framealpha=1.0)
     ax[1].set_xlim([-.12, .17])
     ax[1].axvline(0, lw=1, color='k')
 
