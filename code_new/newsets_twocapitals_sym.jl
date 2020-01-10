@@ -664,5 +664,5 @@ end
 for ite in [0.3,0.4,0.5,0.6,0.7,0.8]
     println("beta = ", ite)
     s = string("model_asym_HSHSHS" , replace(string(ite),"."=>""))
-    twocapitals(0,1,0,0.005,ite,s)
+    twocapitals(0,2,0,0.005,ite,s)
 end

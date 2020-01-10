@@ -6,7 +6,10 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gsp
 import seaborn as sns
 import os
-
+import pickle
+import plotly
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 colors = sns.color_palette()
 
 
@@ -231,8 +234,7 @@ class Model(object):
 
 
 
-    def figure_1(self, cut=25, left_top_ylim=None, left_bottom_ylim=[-.0005, .0005],
-                 numb_lcurves=5, perc=.1):
+    def figure_1(self, cut=25, left_top_ylim=None, left_bottom_ylim=[-.0005, .0005], numb_lcurves=5, perc=.1):
 
         ind_ld_z, ind_med_z, ind_ud_z = self.ind_ld_z, self.ind_med_z, self.ind_ud_z
         ind_med_r = self.ind_med_r
@@ -365,8 +367,6 @@ class Model(object):
 
     #def irf_figure(self, cut=25, left_top_ylim=None, left_bottom_ylim=[-.0005, .0005],
     #             numb_lcurves=5, perc=.1):
-
-
 
 
     def figure_1_components(self, ax2_t, ax2_c, ax2_r, left=False, numb_lcurves=5, perc=.1):
@@ -801,8 +801,73 @@ class Model(object):
                               m[i, 13], m[i, 14], m[i, 15], m[i, 16]))
 
 
+class plottingmodule():
+    def __init__(self):
+        tilt_graph = pickle.load(open('./data/plotdata_12.pickle', "rb", -1))
+        self.sets_const_tilt = tilt_graph['sets_const']
+        self.sets_quad_tilt = tilt_graph['sets_quad']
+        self.worstcase_intercept = tilt_graph['worstcase_intercept']
+        self.worstcase_intercept_path = tilt_graph['wc_path_intercept']
+        self.worstcase_persistence_path = tilt_graph['wc_path_persistence']
+        self.worstcase_persistence = tilt_graph['worstcase_persistence']
+        self.isos = tilt_graph['isos']
 
+    def const_tilt_plot(self):
+        models = sorted(list(self.sets_const_tilt.keys()),reverse = True)
+        fig = go.Figure()
+        ite = 0
+        for kappa, alpha in models:
+            if kappa == 0.169 and alpha == 0:
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model'))
+            else:
+                if ite == 0: 
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model'))
+                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = True, showlegend = True, name = r'$\text{boundary (iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    ite = 1
+                else:
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model'))
+                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, showlegend = True, name = r'$\text{boundary (iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
 
+        steps = []
+        for i in range(len(models)):
+            if i == 0:
+                label = '{}'.format(models[i][1])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+            else:
+                label = '{}'.format(models[i][1])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][i*2] = True
+                step['args'][1][i*2 - 1] = True
+            steps.append(step)
+
+        sliders = [dict(active = int(0.3 * len(models)),
+                    currentvalue = {"prefix": r'$\kappa = $'},
+                    pad = {"t": len(models)},
+                    steps = steps)]
+
+        fig.update_layout(title = "Constant tilting function", titlefont = dict(size = 20), height = 800,
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text=r'$\kappa$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$\alpha$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False),
+                            sliders = sliders
+                            )
+        fig.update_xaxes(range = [0.02, 0.3])
+        fig.update_yaxes(range = [-.065, .04])
+
+        fig.show()
 
 def irf_figure1(model, shock=0, dim='R', ylim_left=None, ylim_right=None):
 
