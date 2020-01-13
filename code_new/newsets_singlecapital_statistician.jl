@@ -22,7 +22,7 @@ delta = .002;
 alpha_z_hat = .0;
 kappa_hat = .014;
 
-alpha_c_hat = .484;       # consumption intercept (estimated) 
+alpha_c_hat = .484;       # consumption intercept (estimated)
 beta_hat = 1.;
 
 sigma_c = [.477, .0  ];   # consumption exposure (= exposure of single capital)
