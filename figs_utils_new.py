@@ -8,13 +8,51 @@ import seaborn as sns
 import os
 import pickle
 import plotly
-import plotly.graph_objs as go
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from scipy.interpolate import interp1d
+
 colors = sns.color_palette()
 
 
 def confidence_band(joint_dens, perc):
     return optimize.brentq(lambda x : np.sum(joint_dens[joint_dens < x]) - perc, 1e-15, .8)
+
+def half_split(x,y, bar = None):
+    if bar == None:
+        ybar = np.mean(y)
+        up_ind = np.where(y >= ybar)
+        down_ind = np.where(y < ybar)
+
+        y_up = y[up_ind]
+        x_up = x[up_ind]
+        sort_ind = np.argsort(x_up)
+        x_up = x_up[sort_ind]
+        y_up = y_up[sort_ind]
+
+        y_down = y[down_ind]
+        x_down = x[down_ind]
+        sort_ind = np.argsort(x_down)
+        x_down = x_down[sort_ind]
+        y_down = y_down[sort_ind]
+    else:
+        ybar = bar
+        up_ind = np.where(y >= ybar)
+        down_ind = np.where(y < ybar)
+
+        y_up = y[up_ind]
+        x_up = x[up_ind]
+        sort_ind = np.argsort(x_up)
+        x_up = x_up[sort_ind]
+        y_up = y_up[sort_ind]
+
+        y_down = y[down_ind]
+        x_down = x[down_ind]
+        sort_ind = np.argsort(x_down)
+        x_down = x_down[sort_ind]
+        y_down = y_down[sort_ind]
+    
+    return x_down, y_down, x_up, y_up
 
 
 class Model(object):
@@ -357,12 +395,13 @@ class Model(object):
         ax2_r.set_xlim([0, max(f_dist.sum(0).max(), f_wc_dist.sum(0).max())*1.2])
 
         f.add_subplot(ax1_t)
-        #f.add_subplot(ax1_b)
+        #f.add_subplot(ax1_b) 
         f.add_subplot(ax2_t)
         f.add_subplot(ax2_r)
         f.add_subplot(ax2_c)
 
         f.tight_layout()
+        return f
 
 
     #def irf_figure(self, cut=25, left_top_ylim=None, left_bottom_ylim=[-.0005, .0005],
@@ -812,32 +851,42 @@ class plottingmodule():
         self.worstcase_persistence = tilt_graph['worstcase_persistence']
         self.isos = tilt_graph['isos']
 
+        self.ex_ante = pickle.load(open('./data/plotdata_4.pickle', "rb", -1))
+        self.kappa_hat_list = sorted(self.ex_ante.keys())
+        self.ex_post = pickle.load(open('./data/plotdata_6.pickle', "rb", -1))
+        self.beta_hat_list = sorted(self.ex_post.keys())
+
     def const_tilt_plot(self):
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
         models = sorted(list(self.sets_const_tilt.keys()),reverse = True)
         fig = go.Figure()
         ite = 0
         for kappa, alpha in models:
             if kappa == 0.169 and alpha == 0:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker=dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
             else:
                 if ite == 0: 
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model'))
-                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = True, showlegend = True, name = r'$\text{boundary (iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], marker=dict(color='LightSkyBlue', size = 8), visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+
+                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, fill = 'toself', mode = 'lines', fillcolor = red_fill,
+                        line = dict(color = red_line), showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
                     ite = 1
                 else:
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model'))
-                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, showlegend = True, name = r'$\text{boundary (iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker=dict(color='LightSkyBlue', size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
 
+                    # fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = y_down, visible = False, line = dict(color = red_line),
+                    #     showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, fill = 'toself', mode = 'lines', fillcolor = red_fill,
+                        line = dict(color = red_line), showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
+        fig.data[5 * 2]['visible'] = True
+        fig.data[5 * 2 -1]['visible'] = True
         steps = []
         for i in range(len(models)):
             if i == 0:
-                label = '{}'.format(models[i][1])
-                step = dict(
-                    method = 'restyle',
-                    args = ['visible', [False] * len(fig.data)],
-                    label = label
-                )
-                step['args'][1][0] = True
+                pass
             else:
                 label = '{}'.format(models[i][1])
                 step = dict(
@@ -848,26 +897,567 @@ class plottingmodule():
                 step['args'][1][0] = True
                 step['args'][1][i*2] = True
                 step['args'][1][i*2 - 1] = True
-            steps.append(step)
+                steps.append(step)
 
-        sliders = [dict(active = int(0.3 * len(models)),
-                    currentvalue = {"prefix": r'$\kappa = $'},
+        sliders = [dict(active = 5,
+                    currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
-                    steps = steps)]
+                    steps = steps,
+                    x = 0, y = 0.25)]
 
-        fig.update_layout(title = "Constant tilting function", titlefont = dict(size = 20), height = 800,
+        fig.update_layout(title = dict(text = "Constant tilting function", font = dict(size = 20)),
                             xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
                                                 text=r'$\kappa$', font=dict(size=16)),
-                                                    tickfont=dict(size=12), showgrid = False),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
                             yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
                                                 text=r'$\alpha$', font=dict(size=16)),
-                                                    tickfont=dict(size=12), showgrid = False),
-                            sliders = sliders
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=20, r=10, t=40, b=10),
+                            autosize = False
                             )
-        fig.update_xaxes(range = [0.02, 0.3])
-        fig.update_yaxes(range = [-.065, .04])
+        fig.update_xaxes(range = [0.02, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [-.065, .04], showline = True, linewidth=2, linecolor='black', mirror = True)
 
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def quad_tilt_plot(self):
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        models = sorted(list(self.sets_quad_tilt.keys()),reverse = True)
+        fig = go.Figure()
+        ite = 0
+        for kappa, alpha in models:
+            if kappa == 0.169 and alpha == 0:
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+            else:
+                if ite == 0: 
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, 
+                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'Worrisome Model', mode = 'markers'))
+
+                    fig.add_trace(go.Scatter(x = self.sets_quad_tilt[kappa,alpha][:,0], y = self.sets_quad_tilt[kappa,alpha][:,1], visible = False, line = dict(color = red_line), 
+                        fill = 'toself', mode = 'lines', fillcolor = red_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    ite = 1
+                else:
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, 
+                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'Worrisome Model', mode = 'markers'))
+
+                    fig.add_trace(go.Scatter(x = self.sets_quad_tilt[kappa,alpha][:,0], y = self.sets_quad_tilt[kappa,alpha][:,1], visible = False, line = dict(color = red_line),
+                       fill = 'toself', mode = 'lines', fillcolor = red_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
+        steps = []
+        fig.data[5 * 2]['visible'] = True
+        fig.data[5 * 2 -1]['visible'] = True
+
+        for i in range(len(models)):
+            if i == 0:
+                pass
+            else:
+                label = '{}'.format(models[i][1])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][i*2] = True
+                step['args'][1][i*2 - 1] = True
+
+                steps.append(step)
+
+        sliders = [dict(active = 5,
+                    currentvalue = {"prefix": 'alpha: '},
+                    pad = {"t": len(models)},
+                    steps = steps,
+                    x = 0,
+                    y = 0.25)]
+
+        fig.update_layout(title = dict(text = "Quadratic tilting function", font = dict(size = 20)),
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text=r'$\kappa$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$\alpha$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=10, r=20, t=40, b=10),
+                            autosize = False
+                            )
+        fig.update_xaxes(range = [0.02, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [-.065, .04], showline = True, linewidth=2, linecolor='black', mirror = True)
+
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def intercept_plot(self):
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        models = sorted(list(self.worstcase_intercept.keys()),reverse = True)
+        fig = go.Figure()
+        ite = 0
+        for alpha, kappa in models:
+            if kappa == 0.169 and alpha == 0.0:
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = "Baseline Model",marker = dict(size = 8), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = np.array(self.worstcase_intercept_path)[1,:], y = np.array(self.worstcase_intercept_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
+
+            else:
+                if ite == 0: 
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
+                        fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    ite = 1
+                else:
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
+                        fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
+        l = len(fig.data)
+        for iso in sorted(list(self.isos.keys())):
+            fig.add_trace(go.Scatter(x = self.isos[iso][:,0], y = self.isos[iso][:,1], visible = True, name = "iso value = {:.2f}".format(iso), showlegend = False, line = dict(color = 'rgb({},{},{})'.format(int((1 - iso) * 255), int((1 - iso) * 255), int((1 - iso) * 255)))))
+
+
+        steps = []
+        fig.data[5 * 2]['visible'] = True
+        fig.data[5 * 2 + 1]['visible'] = True
+        for i in range(len(models)):
+            if i == 0:
+                pass
+            else:
+                label = '{:.3f}'.format(models[i][0])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][1] = True
+                step['args'][1][i*2] = True
+                step['args'][1][i*2 + 1] = True
+
+                step['args'][1][l:] = [True] * len(self.isos)
+                steps.append(step)
+
+        sliders = [dict(active = 5,
+                    currentvalue = {"prefix": 'alpha: '},
+                    pad = {"t": len(models)},
+                    steps = steps,
+                    x = 0,
+                    y = 0.3)]
+
+        fig.update_layout(title = "concern about intercept", titlefont = dict(size = 20), 
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text=r'$\kappa$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$\alpha$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=10, r=20, t=40, b=10),
+                            autosize = False
+                            )
+        fig.update_xaxes(range = [0.05, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [-.06, .04], showline = True, linewidth=2, linecolor='black', mirror = True)
+
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def persistence_plot(self):
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        models = sorted(list(self.worstcase_persistence.keys()),reverse = True)
+        fig = go.Figure()
+        ite = 0
+        for alpha, kappa in models:
+            if kappa == 0.169 and alpha == 0.0:
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = np.array(self.worstcase_persistence_path)[1,:], y = np.array(self.worstcase_persistence_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
+
+            else:
+                if ite == 0: 
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
+                        fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                    ite = 1
+                else:
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
+                        fill = 'toself', mode = 'lines', fillcolor = black_fill,showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
+        l = len(fig.data)
+        for iso in sorted(list(self.isos.keys())):
+            fig.add_trace(go.Scatter(x = self.isos[iso][:,0], y = self.isos[iso][:,1], visible = True, name = "iso value = {:.2f}".format(iso), showlegend = False, line = dict(color = 'rgb({},{},{})'.format(int((1 - iso) * 255), int((1 - iso) * 255), int((1 - iso) * 255)))))
+
+
+        steps = []
+        fig.data[5 * 2]['visible'] = True
+        fig.data[5 * 2 + 1]['visible'] = True
+        for i in range(len(models)):
+            if i == 0:
+                pass
+            else:
+                label = '{:.3f}'.format(models[i][0])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][1] = True
+                step['args'][1][i*2] = True
+                step['args'][1][i*2 + 1] = True
+
+                step['args'][1][l:] = [True] * len(self.isos)
+                steps.append(step)
+
+        sliders = [dict(active = 5,
+                    currentvalue = {"prefix": 'alpha: '},
+                    pad = {"t": len(models)},
+                    steps = steps,
+                    x = 0,
+                    y = 0.3)]
+
+        fig.update_layout(title = "concern about persistence", titlefont = dict(size = 20), 
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text=r'$\kappa$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$\alpha$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=10, r=20, t=40, b=10),
+                            autosize = False
+                            )
+        fig.update_xaxes(range = [0.05, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [-.06, .04], showline = True, linewidth=2, linecolor='black', mirror = True)
+
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def ex_post_plot(self):
+
+        fig = make_subplots(subplot_titles = ("investment ratio of the first capital", "stationary distribution of the states"),
+            rows=2, cols=3,
+            specs = [[{"rowspan":2}, {}, {}],
+                    [None, {}, {}]],
+            column_widths = [0.4, 0.4,0.1], row_heights = [0.2, 0.8],vertical_spacing=0.02, horizontal_spacing=0.07)
+
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        plotdata = self.ex_ante
+        for kappa_hat in self.kappa_hat_list:
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr'], name="investment ratio w/o robustness control", 
+                        line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr_ld'], name="w/o robustness control lower bound", 
+                        line = dict(color = black_line, width = 2, dash = 'dash'), legendgroup = 'w/o robustness', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr_ud'], name="w/o robustness control upper bound",
+                        line = dict(color = black_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = black_fill, legendgroup = 'w/o robustness', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr'], name="investment ratio w/ robustness control", 
+                        line = dict(color = "rgba(214,39,40, 1)", width = 2),legendgroup = 'w/ robustness', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr_ld'], name="w/ robustness control lower bound", 
+                        line = dict(color = red_line, width = 2, dash = 'dash'), legendgroup = 'w/ robustness', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr_ud'], name="w/ robustness control upper bound",
+                        line = dict(color = red_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = red_fill, legendgroup = 'w/ robustness', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr'][:,0], y=plotdata[kappa_hat]['density']['withoutr'][:,1], 
+                                    legendgroup = 'w/o robustness (r)', showlegend = True, visible = show_lgd,
+                                    name="stationary distribution w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr_lb'][:,0], y=plotdata[kappa_hat]['density']['withoutr_lb'][:,1], 
+                                    legendgroup = 'w/o robustness (r)', showlegend = False, visible = show_lgd,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['withoutr_ub'][:,0], plotdata[kappa_hat]['density']['withoutr_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'w/o robustness (r)', showlegend = False,  visible = show_lgd,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'w/o robustness (r)', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = black_fill,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base'][:,0], y=plotdata[kappa_hat]['density']['r_base'][:,1], 
+                                    legendgroup = 'baseline w/ robustness', showlegend = True, visible = show_lgd,
+                                    name="stationary distribution w/ robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_lb'][:,0], y=plotdata[kappa_hat]['density']['r_base_lb'][:,1],
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_ub'][:,0], y=plotdata[kappa_hat]['density']['r_base_ub'][:,1],
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_base_ub'][:,0], plotdata[kappa_hat]['density']['r_base_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = red_fill,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst'][:,0], y=plotdata[kappa_hat]['density']['r_worst'][:,1],  visible = show_lgd,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = True,
+                                    name="stationary distribution w/ robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_lb'][:,0], y=plotdata[kappa_hat]['density']['r_worst_lb'][:,1], 
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_ub'][:,0], y=plotdata[kappa_hat]['density']['r_worst_ub'][:,1],
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_worst_ub'][:,0], plotdata[kappa_hat]['density']['r_worst_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = blue_fill,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+
+            fig.add_trace(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = True,
+                            name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'), visible = show_lgd),
+                            row = 2, col = 2)
+
+            fig.add_trace(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = False,
+                            name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'), visible = show_lgd),
+                            row = 2, col = 3)
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_base'], y=plotdata[kappa_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = red_fill, line = dict(color = red_line, dash = 'dash', width = 1)), row=2, col=3)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_without'], y=plotdata[kappa_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=2, col=3)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_worst'], y=plotdata[kappa_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=2, col=3)
+
+
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_without'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=1, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_base'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = red_fill, line = dict(color = red_line, width = 1, dash = 'dash')), row=1, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_worst'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=1, col=2)
+            if show_lgd == True:
+                show_lgd = False
+
+        steps = []
+        for i in range(len(self.kappa_hat_list)):
+
+            label = '{:.3f}'.format(self.kappa_hat_list[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            for j in range(28):
+                step['args'][1][j + i * 28] = True
+
+            # step['args'][1][l:] = [True] * len(self.isos)
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'kappa_hat: '},
+                    pad = {"t": len(self.kappa_hat_list)},
+                    steps = steps,
+                    x = 0,
+                    y = -0.05)]
+
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_yaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_xaxes(range = [0, 0.025], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(range = [-0.8, 0.8], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(title_text = r'$Z$', title_standoff = 0, range = [-0.8, 0.8], row = 2, col = 2)
+        fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 2, col = 2)
+        fig.update_xaxes(title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
+        fig.update_yaxes(title_text = r'$d^*_1$', title_standoff = 0, range = [0.031, 0.035], row = 1, col = 1)
+
+        fig.update_layout(height=800, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'), 
+                          sliders = sliders, margin = dict(l=20, r=20, t=20, b=20),)
         fig.show()
+
+    def ex_ante_plot(self):
+    
+        fig = make_subplots(subplot_titles = ("investment ratio of the first capital", "stationary distribution of the states"),
+            rows=2, cols=3,
+            specs = [[{"rowspan":2}, {}, {}],
+                    [None, {}, {}]],
+            column_widths = [0.4, 0.4,0.1], row_heights = [0.2, 0.8],vertical_spacing=0.02, horizontal_spacing=0.07)
+
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        plotdata = self.ex_post
+        for beta_hat in self.beta_hat_list:
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr'], name="investment ratio w/o robustness control", 
+                        line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr_ld'], name="w/o robustness control lower bound", 
+                        line = dict(color = black_line, width = 2, dash = 'dash'), legendgroup = 'w/o robustness', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr_ud'], name="w/o robustness control upper bound",
+                        line = dict(color = black_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = black_fill, legendgroup = 'w/o robustness', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr'], name="investment ratio w/ robustness control", 
+                        line = dict(color = "rgba(214,39,40, 1)", width = 2),legendgroup = 'w/ robustness', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr_ld'], name="w/ robustness control lower bound", 
+                        line = dict(color = red_line, width = 2, dash = 'dash'), legendgroup = 'w/ robustness', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr_ud'], name="w/ robustness control upper bound",
+                        line = dict(color = red_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = red_fill, legendgroup = 'w/ robustness', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['withoutr'][:,0], y=plotdata[beta_hat]['density']['withoutr'][:,1], 
+                                    legendgroup = 'w/o robustness (r)', showlegend = True, visible = show_lgd,
+                                    name="stationary distribution w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['withoutr_lb'][:,0], y=plotdata[beta_hat]['density']['withoutr_lb'][:,1], 
+                                    legendgroup = 'w/o robustness (r)', showlegend = False, visible = show_lgd,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['withoutr_ub'][:,0], plotdata[beta_hat]['density']['withoutr_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'w/o robustness (r)', showlegend = False,  visible = show_lgd,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'w/o robustness (r)', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = black_fill,
+                                    name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base'][:,0], y=plotdata[beta_hat]['density']['r_base'][:,1], 
+                                    legendgroup = 'baseline w/ robustness', showlegend = True, visible = show_lgd,
+                                    name="stationary distribution w/ robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base_lb'][:,0], y=plotdata[beta_hat]['density']['r_base_lb'][:,1],
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base_ub'][:,0], y=plotdata[beta_hat]['density']['r_base_ub'][:,1],
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_base_ub'][:,0], plotdata[beta_hat]['density']['r_base_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'baseline w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = red_fill,
+                                    name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst'][:,0], y=plotdata[beta_hat]['density']['r_worst'][:,1],  visible = show_lgd,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = True,
+                                    name="stationary distribution w/ robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_lb'][:,0], y=plotdata[beta_hat]['density']['r_worst_lb'][:,1], 
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_ub'][:,0], y=plotdata[beta_hat]['density']['r_worst_ub'][:,1],
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_worst_ub'][:,0], plotdata[beta_hat]['density']['r_worst_ub'][:,1])
+
+            fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+            fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd,
+                                    legendgroup = 'worstcase w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = blue_fill,
+                                    name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+
+            fig.add_trace(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = True,
+                            name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'), visible = show_lgd),
+                            row = 2, col = 2)
+
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_base'], y=plotdata[beta_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = red_fill, line = dict(color = red_line, dash = 'dash', width = 1)), row=2, col=3)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_without'], y=plotdata[beta_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=2, col=3)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_worst'], y=plotdata[beta_hat]['right']['x'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=2, col=3)
+            fig.add_trace(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = False, visible = show_lgd,
+                            name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'),),
+                            row = 2, col = 3)
+
+
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_without'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=1, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_base'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = red_fill, line = dict(color = red_line, width = 1, dash = 'dash')), row=1, col=2)
+            fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_worst'], fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                    fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=1, col=2)
+            if show_lgd == True:
+                show_lgd = False
+
+        steps = []
+        for i in range(len(self.beta_hat_list)):
+
+            label = '{:.3f}'.format(self.beta_hat_list[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            for j in range(28):
+                step['args'][1][j + i * 28] = True
+
+            # step['args'][1][l:] = [True] * len(self.isos)
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'beta_hat: '},
+                    pad = {"t": len(self.beta_hat_list)},
+                    steps = steps,
+                    x = 0,
+                    y = -0.05)]
+
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_yaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_xaxes(range = [0, 0.025], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(range = [-0.8, 0.8], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(title_text = r'$Z$', title_standoff = 0, range = [-0.8, 0.8], row = 2, col = 2)
+        fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 2, col = 2)
+        fig.update_xaxes(title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
+        fig.update_yaxes(title_text = r'$d^*_1$', title_standoff = 0, range = [0.031, 0.035], row = 1, col = 1)
+
+        fig.update_layout(height=800, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
+                          sliders = sliders, margin = dict(l=20, r=20, t=20, b=20),)
+        fig.show()
+
 
 def irf_figure1(model, shock=0, dim='R', ylim_left=None, ylim_right=None):
 
@@ -924,8 +1514,6 @@ def irf_figure1(model, shock=0, dim='R', ylim_left=None, ylim_right=None):
     if ylim_right:
         ax[1].set_ylim(ylim_right)
     plt.tight_layout()
-
-
 
 def fig_muZ(m1, m2):
     model = m1
@@ -988,8 +1576,6 @@ def fig_muZ(m1, m2):
     ax[1].set_ylim([-.012, .01])
 
     plt.tight_layout()
-
-
 
 def plot_termstructure(m1, m2, T):
     shock_price_12, shock_price_z = m1.shock_price_12, m1.shock_price_z
@@ -1059,8 +1645,6 @@ def plot_termstructure(m1, m2, T):
     ax[1, 1].set_xlabel("Horizon (quarters)", fontsize=15)
     plt.tight_layout()
 
-
-
 def plot_termstructure2(m1, m2, T):
     shock_price_12, shock_price_z = m1.shock_price_12, m1.shock_price_z
     shock_price_12_asym, shock_price_z_asym = m2.shock_price_12, m2.shock_price_z
@@ -1104,8 +1688,6 @@ def plot_termstructure2(m1, m2, T):
 
     plt.tight_layout()
 
-
-
 def NBER_Shade(ax, start_date):
     """
     This function adds NBER recession bands to a Matplotlib Figure object.
@@ -1114,7 +1696,7 @@ def NBER_Shade(ax, start_date):
     """
 
     # load the NBER recession dates
-    NBER_Dates = pd.read_csv('./notebooks/NBER_dates.txt')
+    NBER_Dates = pd.read_csv('./data/NBER_dates.txt')
     sample_1 = pd.Timestamp(start_date) <= pd.DatetimeIndex(NBER_Dates['Peak'])
     sample_2 = pd.Timestamp(start_date) <= pd.DatetimeIndex(NBER_Dates['Trough'])
     NBER_Dates = NBER_Dates[sample_1 + sample_2]
@@ -1122,9 +1704,6 @@ def NBER_Shade(ax, start_date):
     # for loop generates recession bands!
     for i in NBER_Dates.index:
         ax.axvspan(NBER_Dates['Peak'][i], NBER_Dates['Trough'][i], facecolor='grey', alpha=0.15)
-
-
-from scipy.interpolate import interp1d
 
 def stationary_uncertaintyprice(x, model):
 
@@ -1150,7 +1729,6 @@ def stationary_uncertaintyprice(x, model):
 
 
     return dens_12.max(0), dens_z.max(0)
-
 
 def stationary_uncertaintyprice2(density, vec, I):
 
@@ -1191,7 +1769,7 @@ def Figure3():
         xi_grid[i] = xi0_k + 2*xi1_k*z + xi2_k*z**2
         xi2_grid[i] = xi0_b + 2*xi1_b*z + xi2_b*z**2
         
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(z_grid, xi_grid, color='k', lw=2.5, label = r"$\xi^{[\kappa]}(z)$")
     ax.plot(z_grid, xi2_grid, color='gray', lw=2.5, alpha=.8, label = r"$\xi^{[\beta]}(z)$")
     ax.axhline(xi0_k, color='k', linestyle='--', lw=1, alpha=.9)
@@ -1231,7 +1809,7 @@ def Figure5():
         dec1 = 3
         dec9 = 4
 
-    fig, ax = plt.subplots(1, 2, figsize=(9.5, 3.5), sharey=True) #, sharex=True)
+    fig, ax = plt.subplots(1, 2, figsize=(12, 4), sharey=True) #, sharex=True)
 
     ax[0].plot(100*model.R_irf[:, 2, shock, 0], lw=3, color='k', label='without robustness')
     #ax[0].plot(100*model.R_irf[:, 2, shock, dec9], lw=1, color='k', linestyle='-.', alpha=.8)
@@ -1309,7 +1887,7 @@ def Figure7():
 
     #inn_r = slice(model.ind_ld_r_noR, model.ind_ud_r_noR)
     inn_r = slice(1, -1)
-    fig, ax = plt.subplots(1, 2, figsize=(9.5, 3.5))
+    fig, ax = plt.subplots(1, 2, figsize=(12, 4))
 
     ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_med_z], color='k', lw=3, label="under baseline")
     #ax[0].plot(pii[inn_r, 0], mu_z[inn_r, model.ind_ld_z], color='k', lw=2, linestyle='--', alpha=.4)
@@ -1382,7 +1960,7 @@ def Figure8():
 
     import matplotlib.lines as mlines
 
-    fig, ax = plt.subplots(figsize=(9.5, 4))
+    fig, ax = plt.subplots(figsize=(12, 4))
     sns.despine()
 
     # ax.axhline(0, lw=1, color='k', alpha=.9)
@@ -1407,25 +1985,9 @@ def Figure8():
     ax.tick_params(axis='both', which='major', labelsize = 10)
     ax.set_ylim([-0.1, .2])
 
-    # NBER_Shade(ax, start_date)
+    NBER_Shade(ax, start_date)
     plt.tight_layout()
     # plt.savefig(figures_path + 'uncertainty_prices.pdf')
-
-def stationary_uncertaintyprice2(density, vec, I):
-    
-    length = density.shape[0]
-    segment = I - 0
-    numb_segment = int(round(length/segment))
-
-    price = np.zeros(numb_segment)
-    price_density = np.zeros(numb_segment)
-
-    for i in range(numb_segment):
-        price_density[i] = max(density[i*segment:(i+1)*segment])
-        dummy = vec[i*segment:(i+1)*segment]
-        price[i] = dummy[np.argmax(density[i*segment:(i+1)*segment])]
-
-    return price, price_density
 
 def Figure9():
     if os.path.exists("./data/model_asym_HSHS2.npz"):
@@ -1461,7 +2023,7 @@ def Figure9():
 
     #=============== PLOT =========================#
 
-    fig, ax = plt.subplots(1, 2, figsize = (9.5, 4), sharex=True, sharey=True)
+    fig, ax = plt.subplots(1, 2, figsize = (12, 4), sharex=True, sharey=True)
 
     ax[0].set_title("Shock to capital", fontsize=16)
     ax[0].plot(h12_vec, h12_density/hz_sum, lw=2, color=colors[1], 
@@ -1494,10 +2056,75 @@ def Figure9():
     ax[1].fill_between(hz_b_vec, 0, hz_b_density/hz_b_sum, color=colors[0], alpha=.15)
 
     ax[1].axhline(0, lw=1.5, color='k')
-    ax[1].legend(loc=2, fontsize=10, ncol=2, frameon=True, framealpha=1.0)
+    ax[1].legend(loc=2, fontsize=12, ncol=2, frameon=True, framealpha=1.0)
     ax[1].set_xlim([-.12, .17])
     ax[1].axvline(0, lw=1, color='k')
 
     plt.tight_layout()
     # plt.savefig('local_uncertainty_prices.pdf')
 
+
+if __name__ == '__main__':
+    p = plottingmodule()
+    # p.intercept_plot()
+    # p.persistence_plot()
+    p.ex_post_plot()
+    p.ex_ante_plot()
+
+
+    # code for dumping data
+    # plotdata = {}
+    # for file_beta in files_beta:
+    #     data = {}
+    #     file_beta = './data/' + file_beta
+    #     model = Model(np.load(file_beta))
+    #     f = model.figure_1(left_top_ylim=[.031, .035], numb_lcurves=4)
+    #     data['left'] = {}
+    #     pii_cut = model.pii[25:-25, 0]
+    #     data['left']['x'] = pii_cut
+    #     data['left']['withoutr'] = model.d1_noR[25:-25, model.ind_med_z]
+    #     data['left']['withoutr_ud'] = model.d1_noR[25:-25, model.ind_ud_z] 
+    #     data['left']['withoutr_ld'] = model.d1_noR[25:-25, model.ind_ld_z] 
+
+    #     data['left']['withr'] = model.d1[25:-25, model.ind_med_z]
+    #     data['left']['withr_ud'] = model.d1[25:-25, model.ind_ud_z] 
+    #     data['left']['withr_ld'] = model.d1[25:-25, model.ind_ld_z] 
+
+    #     data['density'] = {}
+    #     data['density']['withoutr'] = f.axes[3].collections[1].get_paths()[0].vertices # 黑中
+    #     data['density']['withoutr_lb'] = f.axes[3].collections[2].get_paths()[0].vertices  # 黑内
+    #     ite = 0
+    #     ll = None
+    #     for f_ite in f.axes[3].collections[0].get_paths():
+    #         if ll == None:
+    #             candidate = f_ite.vertices
+    #             ll = len(f_ite)
+    #         else:
+    #             if len(f_ite) > ll:
+    #                 ll = len(f_ite)
+    #                 candidate = f_ite.vertices
+
+    #     data['density']['withoutr_ub'] = candidate  # 黑外
+    #     data['density']['r_base'] = f.axes[3].collections[6].get_paths()[0].vertices  # 红中
+    #     data['density']['r_base_lb'] = f.axes[3].collections[7].get_paths()[0].vertices # 红内
+    #     data['density']['r_base_ub'] = f.axes[3].collections[5].get_paths()[0].vertices # 红外
+    #     data['density']['r_worst'] = f.axes[3].collections[11].get_paths()[0].vertices # 蓝中
+    #     data['density']['r_worst_lb'] = f.axes[3].collections[12].get_paths()[0].vertices # 蓝内
+    #     data['density']['r_worst_ub'] = f.axes[3].collections[10].get_paths()[0].vertices # 蓝外
+
+    #     data['top'] = {}
+    #     data['top']['x'] = model.pii[1:,0]
+    #     data['top']['f_without'] = model.f_noR_dist.sum(1)
+    #     data['top']['f_base'] = model.f_dist.sum(1)
+    #     data['top']['f_worst'] = model.f_wc_dist.sum(1)
+
+    #     data['right'] = {}
+    #     data['right']['x'] = model.zz[0,:]
+    #     data['right']['f_without'] = model.f_noR_dist.sum(0)
+    #     data['right']['f_base'] = model.f_dist.sum(0)
+    #     data['right']['f_worst'] = model.f_wc_dist.sum(0)
+        
+    #     if file_beta[-6] == '0':
+    #         plotdata[np.round(np.int(file_beta[-6:-4]) * 1e-2, 3)] = data
+    #     else:
+    #         plotdata[np.round(np.int(file_beta[-6:-4]) * 1e-3, 3)] = data
