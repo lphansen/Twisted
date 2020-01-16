@@ -9,8 +9,8 @@ This repository contains codes and jupyter notebooks which estimates and demonst
 ## To-dos:
 1. Ways to show the table in the notebook
 2. Necessary to provide estimation detail notebooks?
-3. Figures 1&2
-4. Solving models under finer grids
+3. Check state dependence with Balint
+4. slider for IRFs: Solving models under finer grids
 
 ## Acessing our jupyter notebook
 To access our notebook, please follow steps below:
@@ -26,36 +26,11 @@ cd [folder path name]
 ```
 git clone https://github.com/lphansen/Twisted
 ```
-3.	To download the data solution files(under developing)
-
-4.	Install Julia and add Julia executabe to system environment paths.
-    - For installing Julia, please visit https://julialang.org/
-    - a) Mac user: 
-        - i) type in terminal: PATH="/Applications/Julia-1.3.app/Contents/Resources/julia/bin/:${PATH}"
-        - ii) type in terminal: export PATH
-        - Note: remember to change the version of Julia in the path of i) if your Julia version is not 1.3 
-    - b) Windows user:
-        - follow instructions here: http://wallyxie.com/weblog/adding-julia-windows-path-command-prompt/
-        - or you can visit https://en.wikibooks.org/wiki/Introducing_Julia/Getting_started
-        
-5.  Open Julia.exe and install the following four packages:
-```
-using Pkg
-Pkg.add("Optim")
-Pkg.add("Roots")
-Pkg.add("NPZ")
-Pkg.add("Interpolations")
-
-```
-6.  Go back to command line prompt, install Pyjulia package in python environment
-```
-pip install julia
-```
-7.	Go back to command line prompt, change directories into the __Twisted__ folder and open jupyter notebook by running below in command prompt
+3.	Go back to command line prompt, change directories into the __Twisted__ folder and open jupyter notebook by running below in command prompt
     - If you don’t have anaconda3 and jupyter notebook installed, try installing from this page: https://jupyter.org/install.html
 ```
 jupyter notebook
 ```
-8. Our notebook interface should show up in the browser and open main.ipynb to play with our notebooks!
+4. Our notebook interface should show up in the browser and open main.ipynb to play with our notebooks!
 
 
