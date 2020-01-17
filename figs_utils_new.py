@@ -1458,6 +1458,442 @@ class plottingmodule():
                           sliders = sliders, margin = dict(l=20, r=20, t=20, b=20),)
         fig.show()
 
+    def ex_ante_animation(self):
+        
+        fig = make_subplots(subplot_titles = ("investment ratio of the first capital", "stationary distribution of the states"),
+            rows=2, cols=3,
+            specs = [[{"rowspan":2}, {}, {}],
+                    [None, {}, {}]],
+            column_widths = [0.4, 0.4,0.1], row_heights = [0.2, 0.8],vertical_spacing=0.02, horizontal_spacing=0.07)
+
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        plotdata = self.ex_post
+
+        beta_hat = self.beta_hat_list[0]
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr'], name="investment ratio w/o robustness control", hoverinfo= 'name',
+ 
+                    line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr_ld'], name="w/o robustness control lower bound", hoverinfo= 'name',
+                    line = dict(color = black_line, width = 2, dash = 'dash'), legendgroup = 'w/o robustness', showlegend = False, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr_ud'], name="w/o robustness control upper bound",hoverinfo= 'name',
+                    line = dict(color = black_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = black_fill, legendgroup = 'w/o robustness', visible = show_lgd,
+                                showlegend = False), row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr'], name="investment ratio w/ robustness control", hoverinfo= 'name',
+                    line = dict(color = "rgba(214,39,40, 1)", width = 2),legendgroup = 'w/ robustness', showlegend = True, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr_ld'], name="w/ robustness control lower bound", hoverinfo= 'name',
+                    line = dict(color = red_line, width = 2, dash = 'dash'), legendgroup = 'w/ robustness', showlegend = False, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withr_ud'], name="w/ robustness control upper bound", hoverinfo= 'name',
+                    line = dict(color = red_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = red_fill, legendgroup = 'w/ robustness', visible = show_lgd,
+                                showlegend = False), row=1, col=1)
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['withoutr'][:,0], y=plotdata[beta_hat]['density']['withoutr'][:,1], hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = True, visible = show_lgd,
+                                name="stationary distribution w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['withoutr_lb'][:,0], y=plotdata[beta_hat]['density']['withoutr_lb'][:,1], hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = False, visible = show_lgd,
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['withoutr_ub'][:,0], plotdata[beta_hat]['density']['withoutr_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'w/o robustness (r)', showlegend = False,  visible = show_lgd, hoverinfo= 'name',
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = black_fill,
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base'][:,0], y=plotdata[beta_hat]['density']['r_base'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = True, visible = show_lgd,
+                                name="stationary distribution w/ robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base_lb'][:,0], y=plotdata[beta_hat]['density']['r_base_lb'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_base_ub'][:,0], y=plotdata[beta_hat]['density']['r_base_ub'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_base_ub'][:,0], plotdata[beta_hat]['density']['r_base_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd, hoverinfo= 'name',
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = red_fill,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst'][:,0], y=plotdata[beta_hat]['density']['r_worst'][:,1],  visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = True,
+                                name="stationary distribution w/ robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_lb'][:,0], y=plotdata[beta_hat]['density']['r_worst_lb'][:,1],  hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_ub'][:,0], y=plotdata[beta_hat]['density']['r_worst_ub'][:,1], hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_worst_ub'][:,0], plotdata[beta_hat]['density']['r_worst_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd, hoverinfo= 'name',
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = blue_fill,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+
+        fig.add_trace(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = True, hoverinfo= 'name',
+                        name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'), visible = show_lgd),
+                        row = 2, col = 2)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_base'], y=plotdata[beta_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = red_fill, line = dict(color = red_line, dash = 'dash', width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_without'], y=plotdata[beta_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['right']['f_worst'], y=plotdata[beta_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = False, hoverinfo= 'name', visible = show_lgd,
+                        name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'),),
+                        row = 2, col = 3)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_without'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=1, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_base'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = red_fill, line = dict(color = red_line, width = 1, dash = 'dash')), row=1, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_worst'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=1, col=2)
+            # if show_lgd == True:
+            #     show_lgd = False
+        
+        frames = []
+        for beta_hat in self.beta_hat_list:
+            frame = {"data": [], "name": beta_hat, "traces": np.arange(0,28).tolist()}
+            frame['data'].append(go.Scatter(y=plotdata[beta_hat]['left']['withoutr'],))
+
+            frame['data'].append(go.Scatter( y=plotdata[beta_hat]['left']['withoutr_ld'],))
+            frame['data'].append(go.Scatter(y=plotdata[beta_hat]['left']['withoutr_ud'],))
+            frame['data'].append(go.Scatter( y=plotdata[beta_hat]['left']['withr'],))
+            frame['data'].append(go.Scatter(y=plotdata[beta_hat]['left']['withr_ld'],))
+            frame['data'].append(go.Scatter( y=plotdata[beta_hat]['left']['withr_ud'], ))
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['withoutr'][:,0], y=plotdata[beta_hat]['density']['withoutr'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['withoutr_lb'][:,0], y=plotdata[beta_hat]['density']['withoutr_lb'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['withoutr_ub'][:,0], plotdata[beta_hat]['density']['withoutr_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_base'][:,0], y=plotdata[beta_hat]['density']['r_base'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_base_lb'][:,0], y=plotdata[beta_hat]['density']['r_base_lb'][:,1],))
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_base_ub'][:,0], y=plotdata[beta_hat]['density']['r_base_ub'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_base_ub'][:,0], plotdata[beta_hat]['density']['r_base_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_worst'][:,0], y=plotdata[beta_hat]['density']['r_worst'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_lb'][:,0], y=plotdata[beta_hat]['density']['r_worst_lb'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['density']['r_worst_ub'][:,0], y=plotdata[beta_hat]['density']['r_worst_ub'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[beta_hat]['density']['r_worst_ub'][:,0], plotdata[beta_hat]['density']['r_worst_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+            frame['data'].append(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, ))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['right']['f_base'], y=plotdata[beta_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['right']['f_without'], y=plotdata[beta_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['right']['f_worst'], y=plotdata[beta_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2,))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_without'], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_base'], ))
+            frame['data'].append(go.Scatter(x=plotdata[beta_hat]['top']['x'], y=plotdata[beta_hat]['top']['f_worst'], ))
+
+            frames.append(frame)
+
+        updatemenus = [dict(type='buttons',
+                    buttons=[dict(label='Play',
+                                  method='animate',
+                                  args=[[beta for beta in self.beta_hat_list], 
+                                         dict(frame=dict(duration=500, redraw=False), 
+                                              transition=dict(duration=0),
+                                              easing='linear',
+                                              fromcurrent=True,
+                                              mode='immediate'
+                                                                 )])],
+                    direction= 'left', 
+                    pad=dict(r= 10, t=85), 
+                    showactive =True, x= 0, y= 0.1 , xanchor= 'right', yanchor= 'top')
+            ]
+
+        sliders = [{'yanchor': 'top',
+            'xanchor': 'left', 
+            'currentvalue': { 'prefix': 'beta_tilde: ', 'visible': True, 'xanchor': 'right'},
+            'transition': {'duration': 500.0, 'easing': 'linear'},
+            'pad': {'b': 10, 't': 50}, 
+            # 'len': 0.95, 
+            'x': 0, 'y': 0, 
+            'steps': [{'args': [[k], {'frame': {'duration': 500.0, 'easing': 'linear', 'redraw': False},
+                                      'transition': {'duration': 0, 'easing': 'linear'}}], 
+                       'label': k, 'method': 'animate'} for k in self.beta_hat_list       
+                    ]}]
+        fig.update(frames=frames),
+        fig.update_layout(updatemenus=updatemenus,
+                  sliders=sliders);
+
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_yaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_xaxes(range = [0, 0.025], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(range = [-0.8, 0.8], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(title_text = r'$Z$', title_standoff = 0, range = [-0.8, 0.8], row = 2, col = 2)
+        fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 2, col = 2)
+        fig.update_xaxes(title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
+        fig.update_yaxes(title_text = r'$d^*_1$', title_standoff = 0, range = [0.031, 0.035], row = 1, col = 1)
+
+        fig.update_layout(height=800, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
+                         margin = dict(l=20, r=20, t=20, b=20),)
+        fig.show()
+
+    def ex_post_animation(self):
+        
+        fig = make_subplots(subplot_titles = ("investment ratio of the first capital", "stationary distribution of the states"),
+            rows=2, cols=3,
+            specs = [[{"rowspan":2}, {}, {}],
+                    [None, {}, {}]],
+            column_widths = [0.4, 0.4,0.1], row_heights = [0.2, 0.8],vertical_spacing=0.02, horizontal_spacing=0.07)
+
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        plotdata = self.ex_ante
+
+        kappa_hat = self.kappa_hat_list[0]
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr'], name="investment ratio w/o robustness control", hoverinfo= 'name',
+                    line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr_ld'], name="w/o robustness control lower bound", hoverinfo= 'name',
+                    line = dict(color = black_line, width = 2, dash = 'dash'), legendgroup = 'w/o robustness', showlegend = False, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr_ud'], name="w/o robustness control upper bound",hoverinfo= 'name',
+                    line = dict(color = black_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = black_fill, legendgroup = 'w/o robustness', visible = show_lgd,
+                                showlegend = False), row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr'], name="investment ratio w/ robustness control", hoverinfo= 'name',
+                    line = dict(color = "rgba(214,39,40, 1)", width = 2),legendgroup = 'w/ robustness', showlegend = True, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr_ld'], name="w/ robustness control lower bound", hoverinfo= 'name',
+                    line = dict(color = red_line, width = 2, dash = 'dash'), legendgroup = 'w/ robustness', showlegend = False, visible = show_lgd),
+                    row=1, col=1)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withr_ud'], name="w/ robustness control upper bound", hoverinfo= 'name',
+                    line = dict(color = red_line, width = 2, dash = 'dash'), fill = 'tonexty', mode = 'lines', fillcolor = red_fill, legendgroup = 'w/ robustness', visible = show_lgd,
+                                showlegend = False), row=1, col=1)
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr'][:,0], y=plotdata[kappa_hat]['density']['withoutr'][:,1], hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = True, visible = show_lgd,
+                                name="stationary distribution w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr_lb'][:,0], y=plotdata[kappa_hat]['density']['withoutr_lb'][:,1], hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = False, visible = show_lgd,
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['withoutr_ub'][:,0], plotdata[kappa_hat]['density']['withoutr_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'w/o robustness (r)', showlegend = False,  visible = show_lgd, hoverinfo= 'name',
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'w/o robustness (r)', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = black_fill,
+                                name="w/o robustness control", line = dict(color = black_line)), row=2, col=2)
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base'][:,0], y=plotdata[kappa_hat]['density']['r_base'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = True, visible = show_lgd,
+                                name="stationary distribution w/ robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_lb'][:,0], y=plotdata[kappa_hat]['density']['r_base_lb'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_ub'][:,0], y=plotdata[kappa_hat]['density']['r_base_ub'][:,1], hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'dash')), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_base_ub'][:,0], plotdata[kappa_hat]['density']['r_base_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'baseline w/ robustness', showlegend = False, visible = show_lgd, hoverinfo= 'name',
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'baseline w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = red_fill,
+                                name="robustness control under baseline model", line = dict(color = red_line, dash = 'longdash', simplify = True)), row=2, col=2)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst'][:,0], y=plotdata[kappa_hat]['density']['r_worst'][:,1],  visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = True,
+                                name="stationary distribution w/ robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_lb'][:,0], y=plotdata[kappa_hat]['density']['r_worst_lb'][:,1],  hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_ub'][:,0], y=plotdata[kappa_hat]['density']['r_worst_ub'][:,1], hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot')), row=2, col=2)
+
+        x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_worst_ub'][:,0], plotdata[kappa_hat]['density']['r_worst_ub'][:,1])
+
+        fig.add_trace(go.Scatter(x = x_down, y = y_down,
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, visible = show_lgd, hoverinfo= 'name',
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+        fig.add_trace(go.Scatter(x = x_up, y = y_up, visible = show_lgd, hoverinfo= 'name',
+                                legendgroup = 'worstcase w/ robustness', showlegend = False, fill = 'tonexty', mode = 'lines', fillcolor = blue_fill,
+                                name="robustness control under worstcase model", line = dict(color = blue_line, dash = 'dot', simplify = True, shape = "spline")), row=2, col=2)
+
+        fig.add_trace(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = True, hoverinfo= 'name',
+                        name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'), visible = show_lgd),
+                        row = 2, col = 2)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_base'], y=plotdata[kappa_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = red_fill, line = dict(color = red_line, dash = 'dash', width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_without'], y=plotdata[kappa_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['right']['f_worst'], y=plotdata[kappa_hat]['right']['x'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=2, col=3)
+        fig.add_trace(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2, legendgroup = 'mean', showlegend = False, hoverinfo= 'name', visible = show_lgd,
+                        name = "worstcase mean of Z in single capital economy", line = dict(color = 'rgba(44,160,44,0.6)', dash = 'dashdot'),),
+                        row = 2, col = 3)
+
+
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_without'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = black_fill, line = dict(color = black_line, width = 1)), row=1, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_base'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = red_fill, line = dict(color = red_line, width = 1, dash = 'dash')), row=1, col=2)
+        fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_worst'], hoverinfo= 'name', fill='tozeroy',mode='lines', showlegend = False, visible = show_lgd,
+                                fillcolor = blue_fill, line = dict(color = blue_line, dash = 'dot', width = 1)), row=1, col=2)
+            # if show_lgd == True:
+            #     show_lgd = False
+        
+        frames = []
+        for kappa_hat in self.kappa_hat_list:
+            frame = {"data": [], "name": kappa_hat, "traces": np.arange(0,28).tolist()}
+            frame['data'].append(go.Scatter(y=plotdata[kappa_hat]['left']['withoutr'],))
+
+            frame['data'].append(go.Scatter( y=plotdata[kappa_hat]['left']['withoutr_ld'],))
+            frame['data'].append(go.Scatter(y=plotdata[kappa_hat]['left']['withoutr_ud'],))
+            frame['data'].append(go.Scatter( y=plotdata[kappa_hat]['left']['withr'],))
+            frame['data'].append(go.Scatter(y=plotdata[kappa_hat]['left']['withr_ld'],))
+            frame['data'].append(go.Scatter( y=plotdata[kappa_hat]['left']['withr_ud'], ))
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr'][:,0], y=plotdata[kappa_hat]['density']['withoutr'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['withoutr_lb'][:,0], y=plotdata[kappa_hat]['density']['withoutr_lb'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['withoutr_ub'][:,0], plotdata[kappa_hat]['density']['withoutr_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_base'][:,0], y=plotdata[kappa_hat]['density']['r_base'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_lb'][:,0], y=plotdata[kappa_hat]['density']['r_base_lb'][:,1],))
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_base_ub'][:,0], y=plotdata[kappa_hat]['density']['r_base_ub'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_base_ub'][:,0], plotdata[kappa_hat]['density']['r_base_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst'][:,0], y=plotdata[kappa_hat]['density']['r_worst'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_lb'][:,0], y=plotdata[kappa_hat]['density']['r_worst_lb'][:,1], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['density']['r_worst_ub'][:,0], y=plotdata[kappa_hat]['density']['r_worst_ub'][:,1],))
+
+            x_down, y_down, x_up, y_up = half_split(plotdata[kappa_hat]['density']['r_worst_ub'][:,0], plotdata[kappa_hat]['density']['r_worst_ub'][:,1])
+
+            frame['data'].append(go.Scatter(x = x_down, y = y_down,))
+            frame['data'].append(go.Scatter(x = x_up, y = y_up,))
+
+            frame['data'].append(go.Scatter( x = [0, 1],  y = [-.005/.017,] * 2, ))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['right']['f_base'], y=plotdata[kappa_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['right']['f_without'], y=plotdata[kappa_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['right']['f_worst'], y=plotdata[kappa_hat]['right']['x'], ))
+            frame['data'].append(go.Scatter( x = [0, 0.025],  y = [-.005/.017,] * 2,))
+
+
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_without'], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_base'], ))
+            frame['data'].append(go.Scatter(x=plotdata[kappa_hat]['top']['x'], y=plotdata[kappa_hat]['top']['f_worst'], ))
+
+            frames.append(frame)
+
+        updatemenus = [dict(type='buttons',
+                    buttons=[dict(label='Play',
+                                  method='animate',
+                                  args=[[kappa for kappa in self.kappa_hat_list], 
+                                         dict(frame=dict(duration=500, redraw=False), 
+                                              transition=dict(duration=0),
+                                              easing='linear',
+                                              fromcurrent=True,
+                                              mode='immediate'
+                                                                 )])],
+                    direction= 'left', 
+                    pad=dict(r= 10, t=85), 
+                    showactive =True, x= 0, y= 0.1 , xanchor= 'right', yanchor= 'top')
+            ]
+
+        sliders = [{'yanchor': 'top',
+            'xanchor': 'left', 
+            'currentvalue': { 'prefix': 'kappa_tilde: ', 'visible': True, 'xanchor': 'right'},
+            'transition': {'duration': 500.0, 'easing': 'linear'},
+            'pad': {'b': 10, 't': 50}, 
+            # 'len': 0.95, 
+            'x': 0, 'y': 0, 
+            'steps': [{'args': [[k], {'frame': {'duration': 500.0, 'easing': 'linear', 'redraw': False},
+                                      'transition': {'duration': 0, 'easing': 'linear'}}], 
+                       'label': k, 'method': 'animate'} for k in self.kappa_hat_list       
+                    ]}]
+        fig.update(frames=frames),
+        fig.update_layout(updatemenus=updatemenus,
+                  sliders=sliders);
+
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_yaxes(showticklabels = False, row = 1, col = 2)
+        fig.update_xaxes(range = [0, 0.025], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(range = [-0.8, 0.8], showticklabels = False, row = 2, col = 3)
+        fig.update_yaxes(title_text = r'$Z$', title_standoff = 0, range = [-0.8, 0.8], row = 2, col = 2)
+        fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 2, col = 2)
+        fig.update_xaxes(title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
+        fig.update_yaxes(title_text = r'$d^*_1$', title_standoff = 0, range = [0.031, 0.035], row = 1, col = 1)
+
+        fig.update_layout(height=800, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
+                         margin = dict(l=20, r=20, t=20, b=20),)
+        fig.show()
 
 def irf_figure1(model, shock=0, dim='R', ylim_left=None, ylim_right=None):
 
@@ -2068,8 +2504,9 @@ if __name__ == '__main__':
     p = plottingmodule()
     # p.intercept_plot()
     # p.persistence_plot()
-    p.ex_post_plot()
-    p.ex_ante_plot()
+    # p.ex_post_plot()
+    p.ex_ante_animation()
+    p.ex_post_animation()
 
 
     # code for dumping data
