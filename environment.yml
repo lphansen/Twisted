@@ -1,0 +1,10 @@
+name: Twisted
+dependencies:
+    - python=3.6
+    - numpy
+    - matplotlib
+    - scipy
+    - pandas
+    - plotly
+    - jupyter
+    - ipywidgets
