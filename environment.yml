@@ -9,5 +9,4 @@ dependencies:
     - jupyter
     - ipywidgets
     - seaborn
-    - pickle
     - scipy
