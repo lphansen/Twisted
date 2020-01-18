@@ -10,40 +10,46 @@ This repository contains codes and jupyter notebooks which estimates and demonst
 1. Ask for feedbacks from Tom and Lars
 
 ## File structures
-    - main.ipynb is a notebook producing interactive figures accompanying our paper
-    - single_capital.ipynb illustrate and demonstrate our code for solving our model in single capital stock case
-    - two_capitals.ipynb illustrate and demonstrate our code for solving our model in two capital stocks case
+1. __main.ipynb__ is a notebook producing interactive figures accompanying our paper
+2. __single_capital.ipynb__ illustrate and demonstrate our code for solving our model in single capital stock case
+3. __two_capitals.ipynb__ illustrate and demonstrate our code for solving our model in two capital stocks case
 We have a Binder for users to play with our notebook without setting up files on their local machine: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lphansen/Twisted/master)
 
+## Prerequisites
 
-## Acessing our jupyter notebook
-To access our notebook, please follow steps below:
-1.	Open a Windows command prompt or Mac command terminal and change into the folder you would like to store the files. 
-    - You can do this using the command __cd__ in the command prompt.    
-    - For example, running "cd “C:\Users\username\python” " (don’t forget “” around the path name to use an absolute path) would lead me to my designated folder.
+This project simply requires the Anaconda distribution of Python version 3.x and Julia 1.1.x. Additional dependencies and prerequisites are handled automatically in setup.
+
+## Installing the environment and 
+
+Navigate to the folder containing the code and set up the virtual environment necessarily to run our code
+
+For Mac Users, please open the terminal and run the following commands in order
 ```
-cd [folder path name]
+cd /path
+git clone https://github.com/lphansen/Twisted.git
+cd Twisted
+source setup.sh
 ```
-2.	Clone the github repository for the paper 
-    - If you don’t have github installed, try installing it from this page: https://git-scm.com/download/win.
-    - You can do this by running in the command prompt. 
+For Windows Users, please open command prompt (shortcut: Windows+R and type 'cmd'）
 ```
-git clone https://github.com/lphansen/Twisted
+cd /path
+git clone https://github.com/lphansen/Twisted.git
+conda update conda
+conda env create -f environment.yml
+conda activate Twisted
+cd Twisted
 ```
-3.  If User don't have Julia, install Julia and add Julia executabe to system environment paths.
-    - For installing Julia, please visit https://julialang.org/
-    - a) Mac user: 
-        - i) type in terminal: PATH="/Applications/Julia-1.3.app/Contents/Resources/julia/bin/:${PATH}"
-        - ii) type in terminal: export PATH
-        - Note: remember to change the version of Julia in the path of i) if your Julia version is not 1.3 
-    - b) Windows user:
-        - follow instructions here: http://wallyxie.com/weblog/adding-julia-windows-path-command-prompt/
-        - or you can visit https://en.wikibooks.org/wiki/Introducing_Julia/Getting_started
-4.	Go back to command line prompt, change directories into the __Twisted__ folder and open jupyter notebook by running below in command prompt
-    - If you don’t have anaconda3 and jupyter notebook installed, try installing from this page: https://jupyter.org/install.html
+Please replace /path to user designated folder path in both cases.
+
+Press `y` to proceed with installation when prompted. You will know that setup has been correctly implemented if the word `(tenuous)` contained in parenthesis appears on the current line of your terminal window.
+
+## Jupyter Notebook for Interactive Plots in the Paper
+
+To run the notebook, simply use: (Make sure acitivating our virtual python environment "Twisted" and navigating to this folder)
 ```
 jupyter notebook
 ```
-5. Our notebook interface should show up in the browser and have fun playing with our notebooks!
+
+Our notebook interface should show up in the browser and have fun playing with our notebooks!
 
 
