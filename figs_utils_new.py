@@ -851,10 +851,22 @@ class plottingmodule():
         self.worstcase_persistence = tilt_graph['worstcase_persistence']
         self.isos = tilt_graph['isos']
 
-        self.ex_ante = pickle.load(open('./data/plotdata_4.pickle', "rb", -1))
-        self.kappa_hat_list = sorted(self.ex_ante.keys())
-        self.ex_post = pickle.load(open('./data/plotdata_6.pickle', "rb", -1))
-        self.beta_hat_list = sorted(self.ex_post.keys())
+        self.ex_post = pickle.load(open('./data/plotdata_4.pickle', "rb", -1))
+        self.kappa_hat_list = sorted(self.ex_post.keys())
+        self.ex_ante = pickle.load(open('./data/plotdata_6.pickle', "rb", -1))
+        self.beta_hat_list = sorted(self.ex_ante.keys())
+
+        self.twistingfunction = pickle.load(open('./data/plotdata_3.pickle', "rb", -1))
+        self.twisting_list = sorted(list(self.twistingfunction.keys()))
+
+        temp_dict = pickle.load(open('./data/plotdata_57.pickle', "rb", -1))
+        self.sym = temp_dict['sym']
+        self.asym = temp_dict['asym']
+        self.kappa_hat_list1 = sorted(self.sym.keys())
+        self.beta_hat_list1 = sorted(self.asym.keys())
+
+        self.shock_densities = pickle.load(open('./data/plotdata_9.pickle', "rb", -1))
+
 
     def const_tilt_plot(self):
         red_line = "rgba(214,39,40, 0.6)"
@@ -881,8 +893,8 @@ class plottingmodule():
                     fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, fill = 'toself', mode = 'lines', fillcolor = red_fill,
                         line = dict(color = red_line), showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
 
-        fig.data[5 * 2]['visible'] = True
-        fig.data[5 * 2 -1]['visible'] = True
+        fig.data[10 * 2]['visible'] = True
+        fig.data[10 * 2 -1]['visible'] = True
         steps = []
         for i in range(len(models)):
             if i == 0:
@@ -899,7 +911,7 @@ class plottingmodule():
                 step['args'][1][i*2 - 1] = True
                 steps.append(step)
 
-        sliders = [dict(active = 5,
+        sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
@@ -951,8 +963,8 @@ class plottingmodule():
                        fill = 'toself', mode = 'lines', fillcolor = red_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
 
         steps = []
-        fig.data[5 * 2]['visible'] = True
-        fig.data[5 * 2 -1]['visible'] = True
+        fig.data[10 * 2]['visible'] = True
+        fig.data[10 * 2 -1]['visible'] = True
 
         for i in range(len(models)):
             if i == 0:
@@ -970,7 +982,7 @@ class plottingmodule():
 
                 steps.append(step)
 
-        sliders = [dict(active = 5,
+        sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
@@ -1026,8 +1038,8 @@ class plottingmodule():
 
 
         steps = []
-        fig.data[5 * 2]['visible'] = True
-        fig.data[5 * 2 + 1]['visible'] = True
+        fig.data[10 * 2]['visible'] = True
+        fig.data[10 * 2 + 1]['visible'] = True
         for i in range(len(models)):
             if i == 0:
                 pass
@@ -1046,7 +1058,7 @@ class plottingmodule():
                 step['args'][1][l:] = [True] * len(self.isos)
                 steps.append(step)
 
-        sliders = [dict(active = 5,
+        sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
@@ -1102,8 +1114,8 @@ class plottingmodule():
 
 
         steps = []
-        fig.data[5 * 2]['visible'] = True
-        fig.data[5 * 2 + 1]['visible'] = True
+        fig.data[10 * 2]['visible'] = True
+        fig.data[10 * 2 + 1]['visible'] = True
         for i in range(len(models)):
             if i == 0:
                 pass
@@ -1122,7 +1134,7 @@ class plottingmodule():
                 step['args'][1][l:] = [True] * len(self.isos)
                 steps.append(step)
 
-        sliders = [dict(active = 5,
+        sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
@@ -1165,7 +1177,7 @@ class plottingmodule():
         black_line = "rgba(0,0,0,0.6)"
         black_fill = "rgba(0,0,0, 0.2)"
         show_lgd = True
-        plotdata = self.ex_ante
+        plotdata = self.ex_post
         for kappa_hat in self.kappa_hat_list:
             fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr'], name="investment ratio w/o robustness control", 
                         line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
@@ -1319,7 +1331,7 @@ class plottingmodule():
         black_line = "rgba(0,0,0,0.6)"
         black_fill = "rgba(0,0,0, 0.2)"
         show_lgd = True
-        plotdata = self.ex_post
+        plotdata = self.ex_ante
         for beta_hat in self.beta_hat_list:
             fig.add_trace(go.Scatter(x=plotdata[beta_hat]['left']['x'], y=plotdata[beta_hat]['left']['withoutr'], name="investment ratio w/o robustness control", 
                         line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
@@ -1473,7 +1485,7 @@ class plottingmodule():
         black_line = "rgba(0,0,0,0.6)"
         black_fill = "rgba(0,0,0, 0.2)"
         show_lgd = True
-        plotdata = self.ex_post
+        plotdata = self.ex_ante
 
         beta_hat = self.beta_hat_list[0]
 
@@ -1692,11 +1704,12 @@ class plottingmodule():
         black_line = "rgba(0,0,0,0.6)"
         black_fill = "rgba(0,0,0, 0.2)"
         show_lgd = True
-        plotdata = self.ex_ante
+        plotdata = self.ex_post
 
         kappa_hat = self.kappa_hat_list[0]
 
         fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr'], name="investment ratio w/o robustness control", hoverinfo= 'name',
+ 
                     line = dict(color = "rgba(0,0,0, 1)", width = 2),legendgroup = 'w/o robustness', showlegend = True, visible = show_lgd),
                     row=1, col=1)
         fig.add_trace(go.Scatter(x=plotdata[kappa_hat]['left']['x'], y=plotdata[kappa_hat]['left']['withoutr_ld'], name="w/o robustness control lower bound", hoverinfo= 'name',
@@ -1853,7 +1866,7 @@ class plottingmodule():
         updatemenus = [dict(type='buttons',
                     buttons=[dict(label='Play',
                                   method='animate',
-                                  args=[[kappa for kappa in self.kappa_hat_list], 
+                                  args=[[beta for beta in self.kappa_hat_list], 
                                          dict(frame=dict(duration=500, redraw=False), 
                                               transition=dict(duration=0),
                                               easing='linear',
@@ -1894,6 +1907,332 @@ class plottingmodule():
         fig.update_layout(height=800, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
                          margin = dict(l=20, r=20, t=20, b=20),)
         fig.show()
+
+    def twisting_plot(self):
+        
+        fig = go.Figure()
+
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        red_line = "rgba(214,39,40, 0.6)"
+        red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        plotdata = self.twistingfunction
+
+        kappa_tilde = self.twisting_list[0]
+
+        z_grid = np.linspace(-.8, .8, 100)
+        show_lgd = True
+
+        for kappa_tilde in self.twisting_list:
+            xi_grid = np.zeros(100)
+            xi2_grid = np.zeros(100)
+
+            xi0_k, xi1_k, xi2_k = plotdata[kappa_tilde]['xi_k'] # model_asym_HSHS["xi0"],model_asym_HSHS["xi1"]       
+            xi0_b, xi1_b, xi2_b = plotdata[kappa_tilde]['xi_b']   # model_asym_HSHS2["xi0"],model_asym_HSHS2["xi1"]     
+
+            for i, z in enumerate(z_grid):
+                xi_grid[i] = xi0_k + 2*xi1_k*z + xi2_k*z**2
+                xi2_grid[i] = xi0_b + 2*xi1_b*z + xi2_b*z**2
+
+            if show_lgd == True:
+                fig.add_trace(go.Scatter(x = z_grid, y = np.ones(100) * 0.2 ** 2 * 0.5, name = r"$\text{target relative entropy }\mathsf{q}^2 / 2$", 
+                        hoverinfo= 'name', line = dict(color = black_line, width = 2, dash = 'dot'), legendgroup = 'q', showlegend = True, visible = show_lgd))
+            
+            fig.add_trace(go.Scatter(x = z_grid, y = np.ones(100) * xi0_k, name = r"$\xi_0$", 
+                    line = dict(color = black_line, width = 2, dash = 'dash'), legendgroup = 'const', showlegend = True, visible = show_lgd))
+
+            fig.add_trace(go.Scatter(x = z_grid, y = xi_grid, name = r"$\xi^{{[\kappa]}}(z)\text{{ with worrisome }}(\tilde{{\alpha_z}}, \tilde{{\kappa}})=({:.3f}, {:.4f})$".format(plotdata[kappa_tilde]['xi_k_params'][1], plotdata[kappa_tilde]['xi_k_params'][2]),
+                    line = dict(color = blue_line, width = 2), legendgroup = 'xi_kappa', showlegend = True, visible = show_lgd))
+            fig.add_trace(go.Scatter(x = z_grid, y = xi2_grid, name = r"$\xi^{{[\beta]}}(z)\text{{ with worrisome }}(\tilde{{\alpha_z}}, \tilde{{\kappa}})=({:.3f}, {:.3f})$".format(plotdata[kappa_tilde]['xi_b_params'][1], plotdata[kappa_tilde]['xi_b_params'][3]),
+                    line = dict(color = red_line, width = 2), legendgroup = 'xi_beta', showlegend = True, visible = show_lgd))
+
+                
+            if show_lgd == True:
+                show_lgd = False
+        
+        steps = []
+        for i in range(len(self.twisting_list)):
+            
+            label = '{:.4f}'.format(self.twisting_list[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            step['args'][1][0] = True
+            step['args'][1][i*3 + 1] = True
+            step['args'][1][i*3 + 2] = True
+            step['args'][1][i*3 + 3] = True
+
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'kappa_tilde: '},
+                    pad = {"t": 5},
+                    steps = steps,
+
+                    x = 0, y = 0.22)]
+
+
+
+        fig.update_layout(sliders=sliders)
+        
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(zeroline = True, zerolinewidth = 1, zerolinecolor='black')
+        fig.update_yaxes(zeroline = True, zerolinewidth = 1, zerolinecolor='black')
+        fig.update_xaxes(range = [-0.8, 0.8])
+        fig.update_yaxes(range = [0, 0.025])
+        fig.update_xaxes(title_text = r'$Z$', title_standoff = 0)
+
+        fig.update_layout(height=500, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
+                         margin = dict(l=20, r=20, t=20, b=20),)
+        fig.show()
+
+    def sym_r_irf_plot(self):
+        blue_line = "rgba(31,119,178, 0.6)"
+        red_line = "rgba(214,39,40, 0.6)"
+        black_line = "rgba(0,0,0,0.6)"
+        fig = go.Figure()
+        xs = np.linspace(1,1000,1000)
+        show_lgd = True
+        for kappa in self.kappa_hat_list1:
+
+            fig.add_trace(go.Scatter(x = xs, y = self.sym[kappa]['r_without'], visible = show_lgd, 
+                line = dict(color = black_line), showlegend = True, name = 'w/o robustness',  legendgroup = 'w/o robustness',))
+            fig.add_trace(go.Scatter(x = xs, y = self.sym[kappa]['r_base'], visible = show_lgd, 
+                line = dict(color = red_line, dash = 'dash'), showlegend = True, name = "baseline w/ robustness",  legendgroup = 'baseline w/ robustness',))
+            fig.add_trace(go.Scatter(x = xs, y = self.sym[kappa]['r_worst'], visible = show_lgd, 
+                line = dict(color = blue_line, dash = 'dot'), showlegend = True, name = "worstcase w/ robustness",  legendgroup = 'worstcase w/ robustness',))
+            if show_lgd == True:
+                show_lgd = False
+
+        fig.data[0]['visible'] = True
+        fig.data[1]['visible'] = True
+        fig.data[2]['visible'] = True
+
+        steps = []
+        for i in range(len(self.kappa_hat_list1)):
+            
+            label = '{}'.format(self.kappa_hat_list1[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            step['args'][1][i * 3] = True
+            step['args'][1][i * 3 + 1] = True
+            step['args'][1][i * 3 + 2] = True
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'kappa_tilde: '},
+                    pad = {"t": 20},
+                    steps = steps,
+                    x = 0, y = 0)]
+
+        fig.update_layout(title = dict(text = "Symmetric returns", font = dict(size = 20)),
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text='Horizon', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$R$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=20, r=10, t=40, b=10),
+                            autosize = False
+                            )
+        fig.update_xaxes(range = [0, 1000], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [0, .20], showline = True, linewidth=2, linecolor='black', mirror = True)
+        # fig.show()
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def asym_r_irf_plot(self):
+        blue_line = "rgba(31,119,178, 0.6)"
+        red_line = "rgba(214,39,40, 0.6)"
+        black_line = "rgba(0,0,0,0.6)"
+        fig = go.Figure()
+        xs = np.linspace(1,1000,1000)
+        show_lgd = True
+        for beta in self.beta_hat_list1:
+
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['r_without'], visible = show_lgd, 
+                line = dict(color = black_line), showlegend = True, name = 'w/o robustness',  legendgroup = 'w/o robustness',))
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['r_base'], visible = show_lgd, 
+                line = dict(color = red_line, dash = 'dash'), showlegend = True, name = "baseline w/ robustness",  legendgroup = 'baseline w/ robustness',))
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['r_worst'], visible = show_lgd, 
+                line = dict(color = blue_line, dash = 'dot'), showlegend = True, name = "worstcase w/ robustness",  legendgroup = 'worstcase w/ robustness',))
+            if show_lgd == True:
+                show_lgd = False
+
+        fig.data[0]['visible'] = True
+        fig.data[1]['visible'] = True
+        fig.data[2]['visible'] = True
+
+        steps = []
+        for i in range(len(self.beta_hat_list1)):
+            
+            label = '{}'.format(self.beta_hat_list1[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            step['args'][1][i * 3] = True
+            step['args'][1][i * 3 + 1] = True
+            step['args'][1][i * 3 + 2] = True
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'beta_tilde: '},
+                    pad = {"t": 20},
+                    steps = steps,
+                    x = 0, y = 0)]
+
+        fig.update_layout(title = dict(text = "Asymmetric returns", font = dict(size = 20)),
+                            xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
+                                                text='Horizon', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            yaxis = go.layout.YAxis(title=go.layout.yaxis.Title(
+                                                text=r'$R$', font=dict(size=16)),
+                                                    tickfont=dict(size=12), showgrid = False, title_standoff = 0),
+                            sliders = sliders,
+                            plot_bgcolor = 'rgba(0,0,0,0)',
+                            legend = dict(x = 0, y = -0.3, orientation = 'h'),
+                            width = 500,
+                            height = 500,
+                            margin = dict(l=20, r=10, t=40, b=10),
+                            autosize = False
+                            )
+        fig.update_xaxes(range = [0, 1000], showline = True, linewidth=2, linecolor='black', mirror = True)
+        fig.update_yaxes(range = [0, .20], showline = True, linewidth=2, linecolor='black', mirror = True)
+        # fig.show()
+        figw = go.FigureWidget(fig)
+        return figw
+
+    def Z_plot(self):
+        fig = make_subplots(subplot_titles = (r"$\mu_z(Z,R)$", "IRF of Z to idiosyncratic capital shock"),
+            rows=1, cols=2,)
+        blue_line = "rgba(31,119,178, 0.6)"
+        blue_fill = "rgba(31,119,178, 0.2)"
+        # red_line = "rgba(214,39,40, 0.6)"
+        # red_fill =  "rgba(214,39,40, 0.2)"
+        black_line = "rgba(0,0,0,0.6)"
+        black_fill = "rgba(0,0,0, 0.2)"
+        show_lgd = True
+        xs = self.asym[0.5]['x']
+        x2s = np.linspace(1,600,600)
+        for beta in self.beta_hat_list1:
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_base'], name=r"$\mu_z(Z,R)\text{: baseline}$", 
+                        line = dict(color = black_line, width = 2), legendgroup = 'baseline', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_base_ud'], name="baseline lower bound", 
+                        line = dict(color = black_line, width = 2), legendgroup = 'baseline', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_base_ld'], name="baseline upper bound",
+                        line = dict(color = black_line, width = 2), fill = 'tonexty', mode = 'lines', fillcolor = black_fill, legendgroup = 'baseline', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_worst'], name = r"$\mu_z(Z,R)\text{: worst}$", 
+                        line = dict(color = blue_line, width = 2, dash = 'dot'), legendgroup = 'worst', showlegend = True, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_worst_ud'], name="worst lower bound", 
+                        line = dict(color = blue_line, width = 2, dash = 'dot'), legendgroup = 'worst', showlegend = False, visible = show_lgd),
+                        row=1, col=1)
+            fig.add_trace(go.Scatter(x = xs, y = self.asym[beta]['mu_z_worst_ld'], name="worst upper bound",
+                        line = dict(color = blue_line, width = 2, dash = 'dot'), fill = 'tonexty', mode = 'lines', fillcolor = blue_fill, legendgroup = 'worst', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+            fig.add_trace(go.Scatter(x = np.ones(len(np.linspace(-.014, .0105))) * self.asym[beta]['z_median'], y = np.linspace(-.014, .0105), name="Median of Z",
+                        line = dict(color = black_line, width = 2, dash = 'dashdot'),  legendgroup = 'median', visible = show_lgd,
+                                    showlegend = False), row=1, col=1)
+            fig.add_trace(go.Scatter(x = x2s, y = self.asym[beta]['z_base'], name="IRF: baseline", 
+                        line = dict(color = black_line, width = 2), legendgroup = 'IRFbaseline', showlegend = True, visible = show_lgd),
+                        row=1, col=2)
+            fig.add_trace(go.Scatter(x = x2s, y = self.asym[beta]['z_worst'], name="IRF: worstcase", 
+                        line = dict(color = blue_line, width = 2, dash = 'dot'), legendgroup = 'worstIRF', showlegend = True, visible = show_lgd),
+                        row=1, col=2)
+            if show_lgd == True:
+                show_lgd = False
+
+        steps = []
+        for i in range(len(self.beta_hat_list)):
+
+            label = '{:.2f}'.format(self.beta_hat_list1[i])
+            step = dict(
+                method = 'restyle',
+                args = ['visible', [False] * len(fig.data)],
+                label = label
+            )
+            for j in range(9):
+                step['args'][1][j + i * 9] = True
+
+            # step['args'][1][l:] = [True] * len(self.isos)
+            steps.append(step)
+
+        sliders = [dict(active = 0,
+                    currentvalue = {"prefix": 'beta_tilde: '},
+                    pad = {"t": len(self.beta_hat_list1)},
+                    steps = steps,
+                    x = 0,
+                    y = 0.15)]
+
+        fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(range = [-.014, .0105], row = 1, col = 1)
+        fig.update_yaxes(range = [-.014, .0105], row = 1, col = 1)
+        fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
+        fig.update_xaxes(title_text = 'Horizon',title_standoff = 0, row = 1, col = 2)
+        fig.update_yaxes(range = [-0.001, 0.01], row = 1, col = 2)
+
+        fig.update_layout(height=500, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
+                          sliders = sliders, margin = dict(l=20, r=20, t=40, b=40),)
+        fig.show()
+            
+    def shockplot(self):
+        fig, ax = plt.subplots(1, 2, figsize = (12, 4), sharex=True, sharey=True)
+
+        ax[0].set_title("Shock to capital", fontsize=16)
+        ax[0].plot(self.shock_densities['x11'], self.shock_densities['y11'], lw=2, color=colors[1], 
+                label=r"Symmetric (concern about $\kappa$)")
+        ax[0].fill_between(self.shock_densities['x11'], 0, self.shock_densities['y11'], color=colors[1], alpha=.15)
+        ax[0].plot(self.shock_densities['x12'], self.shock_densities['y12'], lw=2, color=colors[0], 
+                label=r"Symmetric returns with $\xi^{[\beta]}$")
+        ax[0].plot(self.shock_densities['x13'], self.shock_densities['y13'], lw=2, color=colors[1], linestyle=':', 
+                label=r'Asymmetric (concern about $\kappa$)')
+        ax[0].fill_between(self.shock_densities['x13'], 0, self.shock_densities['y13'], color=colors[1], alpha=.1)
+        ax[0].plot(self.shock_densities['x14'], self.shock_densities['y14'], lw=2, color=colors[0], linestyle=':',
+                label=r'Asymmetric (concern about $\beta$)')
+        ax[0].fill_between(self.shock_densities['x14'], 0, self.shock_densities['y14'], color=colors[0], alpha=.1)
+        ax[0].fill_between(self.shock_densities['x12'], 0, self.shock_densities['y12'], color=colors[0], alpha=.15)
+        ax[0].axhline(0, lw=1.5, color='k')
+        ax[0].axvline(0, lw=1, color='k')
+
+        ax[1].set_title("Shock to long run risk state", fontsize=16)
+        ax[1].plot(self.shock_densities['x21'], self.shock_densities['y21'], lw=2, color=colors[1], 
+                label=r"Symmetric with $\xi^{[\kappa]}$")
+        ax[1].fill_between(self.shock_densities['x21'], 0, self.shock_densities['y21'], color=colors[1], alpha=.15)
+        ax[1].plot(self.shock_densities['x22'], self.shock_densities['y22'], lw=2, color=colors[1], linestyle=':',
+                label=r"Asymmetric with $\xi^{[\kappa]}$")
+        ax[1].fill_between(self.shock_densities['x22'], 0, self.shock_densities['y22'], color=colors[1], alpha=.1)
+        ax[1].plot(self.shock_densities['x23'], self.shock_densities['y23'], lw=2, color=colors[0], 
+                label=r"Symmetric with $\xi^{[\beta]}$")
+        ax[1].plot(self.shock_densities['x24'], self.shock_densities['y24'], lw=2, color=colors[0], linestyle=':',
+                label=r"Asymmetric with $\xi^{[\beta]}$")
+        ax[1].fill_between(self.shock_densities['x24'], 0, self.shock_densities['y24'], color=colors[0], alpha=.1)
+        ax[1].fill_between(self.shock_densities['x23'], 0, self.shock_densities['y23'], color=colors[0], alpha=.15)
+
+        ax[1].axhline(0, lw=1.5, color='k')
+        ax[1].legend(loc=2, fontsize=12, ncol=2, frameon=True, framealpha=1.0)
+        ax[1].set_xlim([-.12, .17])
+        ax[1].axvline(0, lw=1, color='k')
+        plt.tight_layout()
 
 def irf_figure1(model, shock=0, dim='R', ylim_left=None, ylim_right=None):
 
@@ -2505,9 +2844,13 @@ if __name__ == '__main__':
     # p.intercept_plot()
     # p.persistence_plot()
     # p.ex_post_plot()
-    p.ex_ante_animation()
-    p.ex_post_animation()
-
+    # p.ex_ante_animation()
+    # p.ex_post_animation()
+    p.twisting_plot()
+    # p.sym_r_irf_plot()
+    # p.asym_r_irf_plot()
+    # p.Z_plot()
+    # p.shockplot()
 
     # code for dumping data
     # plotdata = {}

@@ -385,7 +385,7 @@ function choose_alpha(q::Float64,
                       b::Baseline{Float64},
                       t::Technology{Float64})
 
-    a_tilde = fzero(a -> worst_case(a, kappa_tilde, alpha_k_tilde, beta_tilde, b, t)[end-1]-q, 0., -0.1);
+    a_tilde = fzero(a -> worst_case(a, kappa_tilde, alpha_k_tilde, beta_tilde, b, t)[end-1]-q, 0, -0.1);
 
     return a_tilde, worst_case(a_tilde, kappa_tilde, alpha_k_tilde, beta_tilde, b, t);
 end
