@@ -8,3 +8,6 @@ dependencies:
     - plotly
     - jupyter
     - ipywidgets
+    - seaborn
+    - pickle
+    - scipy
