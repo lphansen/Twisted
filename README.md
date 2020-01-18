@@ -10,9 +10,9 @@ This repository contains codes and jupyter notebooks which estimates and demonst
 1. Ask for feedbacks from Tom and Lars
 
 ## File structures
-    - main.ipynb is a notebook producing interactive figures accompanying our paper
-    - single_capital.ipynb illustrate and demonstrate our code for solving our model in single capital stock case
-    - two_capitals.ipynb illustrate and demonstrate our code for solving our model in two capital stocks case
+1. __main.ipynb__ is a notebook producing interactive figures accompanying our paper
+2. __single_capital.ipynb__ illustrate and demonstrate our code for solving our model in single capital stock case
+3. __two_capitals.ipynb__ illustrate and demonstrate our code for solving our model in two capital stocks case
 We have a Binder for users to play with our notebook without setting up files on their local machine: [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lphansen/Twisted/master)
 
 ## Prerequisites
