@@ -849,7 +849,10 @@ class plottingmodule():
         self.worstcase_intercept_path = tilt_graph['wc_path_intercept']
         self.worstcase_persistence_path = tilt_graph['wc_path_persistence']
         self.worstcase_persistence = tilt_graph['worstcase_persistence']
-        self.isos = tilt_graph['isos']
+        self.isos_intercept = tilt_graph['isos_intercept']
+        self.isos_persistence = tilt_graph['isos_persistence']
+        self.isos_intercept_val = tilt_graph['isos_intercept_val']
+        self.isos_persistence_val = tilt_graph['isos_persistence_val']
 
         self.ex_post = pickle.load(open('./data/plotdata_4.pickle', "rb", -1))
         self.kappa_hat_list = sorted(self.ex_post.keys())
@@ -866,7 +869,6 @@ class plottingmodule():
         self.beta_hat_list1 = sorted(self.asym.keys())
 
         self.shock_densities = pickle.load(open('./data/plotdata_9.pickle', "rb", -1))
-
 
     def const_tilt_plot(self):
         red_line = "rgba(214,39,40, 0.6)"
@@ -1013,36 +1015,49 @@ class plottingmodule():
     def intercept_plot(self):
         blue_line = "rgba(31,119,178, 0.6)"
         blue_fill = "rgba(31,119,178, 0.2)"
+        black_line = "rgba(0,0,0,0.2)"
         models = sorted(list(self.worstcase_intercept.keys()),reverse = True)
         fig = go.Figure()
-        ite = 0
-        for alpha, kappa in models:
+        for i, params in enumerate(models):
+            alpha, kappa = params
+            wc_alpha, wc_kappa = self.worstcase_intercept_path[0][i], self.worstcase_intercept_path[1][i]
             if kappa == 0.169 and alpha == 0.0:
                 fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = "Baseline Model",marker = dict(size = 8), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = np.array(self.worstcase_intercept_path)[1,:], y = np.array(self.worstcase_intercept_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, line = dict(color = blue_line), 
+                    fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.isos_intercept[wc_alpha, wc_kappa][:,0], y = self.isos_intercept[wc_alpha, wc_kappa][:,1], visible = False, legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_intercept_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
 
             else:
-                if ite == 0: 
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
-                    fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
-                        fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                    ite = 1
-                else:
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
-                    fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
-                        fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-
-        l = len(fig.data)
-        for iso in sorted(list(self.isos.keys())):
-            fig.add_trace(go.Scatter(x = self.isos[iso][:,0], y = self.isos[iso][:,1], visible = True, name = "iso value = {:.2f}".format(iso), showlegend = False, line = dict(color = 'rgb({},{},{})'.format(int((1 - iso) * 255), int((1 - iso) * 255), int((1 - iso) * 255)))))
-
-
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
+                    fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.isos_intercept[wc_alpha, wc_kappa][:,0], y = self.isos_intercept[wc_alpha, wc_kappa][:,1], visible = False,  legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_intercept_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
+                    
         steps = []
-        fig.data[10 * 2]['visible'] = True
-        fig.data[10 * 2 + 1]['visible'] = True
+        fig.data[10 * 4 + 4]['visible'] = True
+        fig.data[10 * 4 + 5]['visible'] = True
+        fig.data[10 * 4 + 2]['visible'] = True
+        fig.data[10 * 4 + 3]['visible'] = True
+
         for i in range(len(models)):
             if i == 0:
-                pass
+                label = '{:.3f}'.format(models[i][0])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][1] = True
+                step['args'][1][2] = True
+                step['args'][1][3] = True
+                step['args'][1][4] = True
+                step['args'][1][5] = True
+
             else:
                 label = '{:.3f}'.format(models[i][0])
                 step = dict(
@@ -1052,18 +1067,18 @@ class plottingmodule():
                 )
                 step['args'][1][0] = True
                 step['args'][1][1] = True
-                step['args'][1][i*2] = True
-                step['args'][1][i*2 + 1] = True
-
-                step['args'][1][l:] = [True] * len(self.isos)
-                steps.append(step)
+                step['args'][1][i*4 + 4] = True
+                step['args'][1][i*4 + 5] = True
+                step['args'][1][i*4 + 2] = True
+                step['args'][1][i*4 + 3] = True
+            steps.append(step)
 
         sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
                     x = 0,
-                    y = 0.3)]
+                    y = 0.35)]
 
         fig.update_layout(title = "concern about intercept", titlefont = dict(size = 20), 
                             xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
@@ -1076,7 +1091,7 @@ class plottingmodule():
                             plot_bgcolor = 'rgba(0,0,0,0)',
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
-                            height = 500,
+                            height = 550,
                             margin = dict(l=10, r=20, t=40, b=10),
                             autosize = False
                             )
@@ -1089,36 +1104,50 @@ class plottingmodule():
     def persistence_plot(self):
         black_line = "rgba(0,0,0,0.6)"
         black_fill = "rgba(0,0,0, 0.2)"
+        black_line = "rgba(0,0,0,0.2)"
         models = sorted(list(self.worstcase_persistence.keys()),reverse = True)
         fig = go.Figure()
-        ite = 0
-        for alpha, kappa in models:
+        for i, params in enumerate(models):
+            alpha, kappa = params
+            wc_alpha, wc_kappa = self.worstcase_persistence_path[0][i], self.worstcase_persistence_path[1][i]
+
             if kappa == 0.169 and alpha == 0.0:
                 fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = np.array(self.worstcase_persistence_path)[1,:], y = np.array(self.worstcase_persistence_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, line = dict(color = black_line), 
+                    fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.isos_persistence[wc_alpha, wc_kappa][:,0], y = self.isos_persistence[wc_alpha, wc_kappa][:,1], visible = False, legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_persistence_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
 
             else:
-                if ite == 0: 
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
-                    fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
-                        fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                    ite = 1
-                else:
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
-                    fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
-                        fill = 'toself', mode = 'lines', fillcolor = black_fill,showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-
-        l = len(fig.data)
-        for iso in sorted(list(self.isos.keys())):
-            fig.add_trace(go.Scatter(x = self.isos[iso][:,0], y = self.isos[iso][:,1], visible = True, name = "iso value = {:.2f}".format(iso), showlegend = False, line = dict(color = 'rgb({},{},{})'.format(int((1 - iso) * 255), int((1 - iso) * 255), int((1 - iso) * 255)))))
-
-
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
+                    fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = self.isos_persistence[wc_alpha, wc_kappa][:,0], y = self.isos_persistence[wc_alpha, wc_kappa][:,1], visible = False,  legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_persistence_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
+            
         steps = []
-        fig.data[10 * 2]['visible'] = True
-        fig.data[10 * 2 + 1]['visible'] = True
+        fig.data[10 * 4 + 5]['visible'] = True
+        fig.data[10 * 4 + 4]['visible'] = True
+        fig.data[10 * 4 + 2]['visible'] = True
+        fig.data[10 * 4 + 3]['visible'] = True
+
         for i in range(len(models)):
             if i == 0:
-                pass
+                label = '{:.3f}'.format(models[i][0])
+                step = dict(
+                    method = 'restyle',
+                    args = ['visible', [False] * len(fig.data)],
+                    label = label
+                )
+                step['args'][1][0] = True
+                step['args'][1][1] = True
+                step['args'][1][2] = True
+                step['args'][1][3] = True
+                step['args'][1][4] = True
+                step['args'][1][5] = True
+
             else:
                 label = '{:.3f}'.format(models[i][0])
                 step = dict(
@@ -1128,18 +1157,18 @@ class plottingmodule():
                 )
                 step['args'][1][0] = True
                 step['args'][1][1] = True
-                step['args'][1][i*2] = True
-                step['args'][1][i*2 + 1] = True
-
-                step['args'][1][l:] = [True] * len(self.isos)
-                steps.append(step)
+                step['args'][1][i*4 + 4] = True
+                step['args'][1][i*4 + 5] = True
+                step['args'][1][i*4 + 2] = True
+                step['args'][1][i*4 + 3] = True
+            steps.append(step)
 
         sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
                     pad = {"t": len(models)},
                     steps = steps,
                     x = 0,
-                    y = 0.3)]
+                    y = 0.35)]
 
         fig.update_layout(title = "concern about persistence", titlefont = dict(size = 20), 
                             xaxis = go.layout.XAxis(title=go.layout.xaxis.Title(
@@ -1152,7 +1181,7 @@ class plottingmodule():
                             plot_bgcolor = 'rgba(0,0,0,0)',
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
-                            height = 500,
+                            height = 550,
                             margin = dict(l=10, r=20, t=40, b=10),
                             autosize = False
                             )
@@ -2841,12 +2870,12 @@ def Figure9():
 
 if __name__ == '__main__':
     p = plottingmodule()
-    # p.intercept_plot()
-    # p.persistence_plot()
+    p.intercept_plot()
+    p.persistence_plot()
     # p.ex_post_plot()
     # p.ex_ante_animation()
     # p.ex_post_animation()
-    p.twisting_plot()
+    # p.twisting_plot()
     # p.sym_r_irf_plot()
     # p.asym_r_irf_plot()
     # p.Z_plot()
