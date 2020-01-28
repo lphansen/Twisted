@@ -878,22 +878,28 @@ class plottingmodule():
         ite = 0
         for kappa, alpha in models:
             if kappa == 0.169 and alpha == 0:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker=dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker=dict(size = 8), name = r"$\text{{baseline: }}(\hat{{\alpha}}, \hat{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
             else:
                 if ite == 0: 
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], marker=dict(color='LightSkyBlue', size = 8), visible = False, name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], marker=dict(color='LightSkyBlue', size = 8), visible = False, name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
 
                     fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, fill = 'toself', mode = 'lines', fillcolor = red_fill,
                         line = dict(color = red_line), showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
 
                     ite = 1
                 else:
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker=dict(color='LightSkyBlue', size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker=dict(color='LightSkyBlue', size = 8), name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
 
                     # fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = y_down, visible = False, line = dict(color = red_line),
                     #     showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
                     fig.add_trace(go.Scatter(x = self.sets_const_tilt[kappa,alpha][:,0], y = self.sets_const_tilt[kappa,alpha][:,1], visible = False, fill = 'toself', mode = 'lines', fillcolor = red_fill,
                         line = dict(color = red_line), showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
+
+        
+        xs = np.linspace(0.02, 0.3, 50)
+        ys = np.linspace(-0.065, 0.04, 50)
+        fig.add_trace(go.Scatter(x = [0.169] * 50, y = ys, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+        fig.add_trace(go.Scatter(x = xs, y = [0] * 50, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
 
         fig.data[10 * 2]['visible'] = True
         fig.data[10 * 2 -1]['visible'] = True
@@ -911,7 +917,11 @@ class plottingmodule():
                 step['args'][1][0] = True
                 step['args'][1][i*2] = True
                 step['args'][1][i*2 - 1] = True
+                step['args'][1][-2] = True
+                step['args'][1][-1] = True
+
                 steps.append(step)
+
 
         sliders = [dict(active = 10,
                     currentvalue = {"prefix": 'alpha: '},
@@ -931,7 +941,7 @@ class plottingmodule():
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
                             height = 500,
-                            margin = dict(l=20, r=10, t=40, b=10),
+                            margin = dict(l=5, r=20, t=40, b=10),
                             autosize = False
                             )
         fig.update_xaxes(range = [0.02, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
@@ -948,22 +958,26 @@ class plottingmodule():
         ite = 0
         for kappa, alpha in models:
             if kappa == 0.169 and alpha == 0:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = r"$\text{{baseline: }}(\hat{{\alpha}}, \hat{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
             else:
                 if ite == 0: 
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, 
-                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, 
+                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'worrisome Model', mode = 'markers'))
 
                     fig.add_trace(go.Scatter(x = self.sets_quad_tilt[kappa,alpha][:,0], y = self.sets_quad_tilt[kappa,alpha][:,1], visible = False, line = dict(color = red_line), 
                         fill = 'toself', mode = 'lines', fillcolor = red_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
                     ite = 1
                 else:
-                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = "Worrisome Model", showlegend = True, 
-                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'Worrisome Model', mode = 'markers'))
+                    fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), showlegend = True, 
+                            marker=dict(color='LightSkyBlue', size = 8), legendgroup = 'worrisome Model', mode = 'markers'))
 
                     fig.add_trace(go.Scatter(x = self.sets_quad_tilt[kappa,alpha][:,0], y = self.sets_quad_tilt[kappa,alpha][:,1], visible = False, line = dict(color = red_line),
                        fill = 'toself', mode = 'lines', fillcolor = red_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
 
+        xs = np.linspace(0.02, 0.3, 50)
+        ys = np.linspace(-0.065, 0.04, 50)
+        fig.add_trace(go.Scatter(x = [0.169] * 50, y = ys, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+        fig.add_trace(go.Scatter(x = xs, y = [0] * 50, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
         steps = []
         fig.data[10 * 2]['visible'] = True
         fig.data[10 * 2 -1]['visible'] = True
@@ -981,6 +995,8 @@ class plottingmodule():
                 step['args'][1][0] = True
                 step['args'][1][i*2] = True
                 step['args'][1][i*2 - 1] = True
+                step['args'][1][-1] = True
+                step['args'][1][-2] = True
 
                 steps.append(step)
 
@@ -1003,7 +1019,7 @@ class plottingmodule():
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
                             height = 500,
-                            margin = dict(l=10, r=20, t=40, b=10),
+                            margin = dict(l=0, r=20, t=40, b=10),
                             autosize = False
                             )
         fig.update_xaxes(range = [0.02, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
@@ -1022,21 +1038,32 @@ class plottingmodule():
             alpha, kappa = params
             wc_alpha, wc_kappa = self.worstcase_intercept_path[0][i], self.worstcase_intercept_path[1][i]
             if kappa == 0.169 and alpha == 0.0:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = "Baseline Model",marker = dict(size = 8), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, name = r"$\text{{baseline: }}(\hat{{\alpha}}, \hat{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa),
+                marker = dict(size = 8), showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = np.array(self.worstcase_intercept_path)[1,:], y = np.array(self.worstcase_intercept_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
-                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), 
+                showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, line = dict(color = blue_line), 
                     fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = r"$\text{{worstcase: }}(\alpha, \kappa) = ({:.3f},{:.3f})$".format(wc_alpha, wc_kappa), 
+                    showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.isos_intercept[wc_alpha, wc_kappa][:,0], y = self.isos_intercept[wc_alpha, wc_kappa][:,1], visible = False, legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_intercept_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
 
             else:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa),
+                    showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.worstcase_intercept[alpha, kappa][:,0], y = self.worstcase_intercept[alpha, kappa][:,1], visible = False, line = dict(color = blue_line), 
                     fill = 'toself', mode = 'lines', fillcolor = blue_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = r"$\text{{worstcase: }}(\alpha, \kappa) = ({:.3f},{:.3f})$".format(wc_alpha, wc_kappa), 
+                    showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.isos_intercept[wc_alpha, wc_kappa][:,0], y = self.isos_intercept[wc_alpha, wc_kappa][:,1], visible = False,  legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_intercept_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
                     
+        fig.add_trace(go.Scatter(x = np.array(models)[:,1], y = np.array(models)[:,0], visible = True, line = dict(color = "rgba(0,0,0,0.3)", dash = 'dashdot'), name = "worrisome exp path", showlegend = False, legendgroup = 'worrisome exp path'))
+        xs = np.linspace(0.02, 0.3, 50)
+        ys = np.linspace(-0.065, 0.04, 50)
+        fig.add_trace(go.Scatter(x = [0.169] * 50, y = ys, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+        fig.add_trace(go.Scatter(x = xs, y = [0] * 50, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+
         steps = []
         fig.data[10 * 4 + 4]['visible'] = True
         fig.data[10 * 4 + 5]['visible'] = True
@@ -1071,6 +1098,10 @@ class plottingmodule():
                 step['args'][1][i*4 + 5] = True
                 step['args'][1][i*4 + 2] = True
                 step['args'][1][i*4 + 3] = True
+
+            step['args'][1][-1] = True
+            step['args'][1][-2] = True
+            step['args'][1][-3] = True
             steps.append(step)
 
         sliders = [dict(active = 10,
@@ -1092,7 +1123,7 @@ class plottingmodule():
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
                             height = 550,
-                            margin = dict(l=10, r=20, t=40, b=10),
+                            margin = dict(l=0, r=20, t=40, b=10),
                             autosize = False
                             )
         fig.update_xaxes(range = [0.05, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
@@ -1112,21 +1143,32 @@ class plottingmodule():
             wc_alpha, wc_kappa = self.worstcase_persistence_path[0][i], self.worstcase_persistence_path[1][i]
 
             if kappa == 0.169 and alpha == 0.0:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = "Baseline Model", showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = True, marker = dict(size = 8), name = r"$\text{{baseline: }}(\hat{{\alpha}}, \hat{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa),
+                    showlegend = True, legendgroup = 'Baseline Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = np.array(self.worstcase_persistence_path)[1,:], y = np.array(self.worstcase_persistence_path)[0,:], visible = True, line = dict(dash = 'dashdot'), name = "worst-case exp path", showlegend = True, legendgroup = 'exp path'))
-                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), 
+                showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, line = dict(color = black_line), 
                     fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [None], y = [None], visible = False, marker = dict(size = 8), name = r"$\text{{worstcase: }}(\alpha, \kappa) = ({:.3f},{:.3f})$".format(wc_alpha, wc_kappa), 
+                    showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.isos_persistence[wc_alpha, wc_kappa][:,0], y = self.isos_persistence[wc_alpha, wc_kappa][:,1], visible = False, legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_persistence_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
 
             else:
-                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = "Worrisome Model", showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [kappa], y = [alpha], visible = False, marker = dict(size = 8), name = r"$\text{{worrisome: }}(\tilde{{\alpha}}, \tilde{{\kappa}}) = ({:.3f},{:.3f})$".format(alpha, kappa), 
+                showlegend = True, legendgroup = 'Worrisome Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.worstcase_persistence[alpha, kappa][:,0], y = self.worstcase_persistence[alpha, kappa][:,1], visible = False, line = dict(color = black_line), 
                     fill = 'toself', mode = 'lines', fillcolor = black_fill, showlegend = True, name = r'$\text{boundary iso-}\varrho\text{ curve}$', legendgroup = 'isocurve'))
-                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = "Worstcase Model", showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
+                fig.add_trace(go.Scatter(x = [wc_kappa], y = [wc_alpha], visible = False, marker = dict(size = 8), name = r"$\text{{worstcase: }}(\alpha, \kappa) = ({:.3f},{:.3f})$".format(wc_alpha, wc_kappa), 
+                    showlegend = True, legendgroup = 'Worstcase Model', mode = 'markers'))
                 fig.add_trace(go.Scatter(x = self.isos_persistence[wc_alpha, wc_kappa][:,0], y = self.isos_persistence[wc_alpha, wc_kappa][:,1], visible = False,  legendgroup = 'iso', name = "iso value = {:.2f}".format(self.isos_persistence_val[wc_alpha, wc_kappa]), showlegend = True, line = dict(color = black_line)))
-            
+        
+        fig.add_trace(go.Scatter(x = np.array(models)[:,1], y = np.array(models)[:,0], visible = True, line = dict(color = "rgba(0,0,0,0.3)", dash = 'dashdot'), name = "worrisome exp path", showlegend = False, legendgroup = 'worrisome exp path'))
+        xs = np.linspace(0.02, 0.3, 50)
+        ys = np.linspace(-0.065, 0.04, 50)
+        fig.add_trace(go.Scatter(x = [0.169] * 50, y = ys, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+        fig.add_trace(go.Scatter(x = xs, y = [0] * 50, visible = True, line=dict(color='black', width = 1, dash = 'dot'), showlegend = False))
+
         steps = []
         fig.data[10 * 4 + 5]['visible'] = True
         fig.data[10 * 4 + 4]['visible'] = True
@@ -1161,6 +1203,11 @@ class plottingmodule():
                 step['args'][1][i*4 + 5] = True
                 step['args'][1][i*4 + 2] = True
                 step['args'][1][i*4 + 3] = True
+
+            step['args'][1][-1] = True
+            step['args'][1][-2] = True
+            step['args'][1][-3] = True
+
             steps.append(step)
 
         sliders = [dict(active = 10,
@@ -1182,7 +1229,7 @@ class plottingmodule():
                             legend = dict(x = 0, y = -0.3, orientation = 'h'),
                             width = 500,
                             height = 550,
-                            margin = dict(l=10, r=20, t=40, b=10),
+                            margin = dict(l=0, r=20, t=40, b=10),
                             autosize = False
                             )
         fig.update_xaxes(range = [0.05, 0.3], showline = True, linewidth=2, linecolor='black', mirror = True)
@@ -2214,10 +2261,13 @@ class plottingmodule():
 
         fig.update_xaxes(showline = True, linewidth=1, linecolor='black', mirror = True)
         fig.update_yaxes( showline = True, linewidth=1, linecolor='black', mirror = True)
+        fig.update_xaxes(zeroline = True, zerolinewidth = 1, zerolinecolor='black', row = 1, col = 2)
+        fig.update_yaxes(zeroline = True, zerolinewidth = 1, zerolinecolor='black', row = 1, col = 1)
+        fig.update_yaxes(zeroline = True, zerolinewidth = 1, zerolinecolor='black', row = 1, col = 2)
         fig.update_xaxes(range = [-.014, .0105], row = 1, col = 1)
         fig.update_yaxes(range = [-.014, .0105], row = 1, col = 1)
         fig.update_xaxes(range = [0, 1], title_text = r'$R$',title_standoff = 0, row = 1, col = 1)
-        fig.update_xaxes(title_text = 'Horizon',title_standoff = 0, row = 1, col = 2)
+        fig.update_xaxes(range = [0, 600], title_text = 'Horizon (Quarters)',title_standoff = 0, row = 1, col = 2)
         fig.update_yaxes(range = [-0.001, 0.01], row = 1, col = 2)
 
         fig.update_layout(height=500, width=950, plot_bgcolor = 'rgba(0,0,0,0)', legend = dict(x = 0, y = -0.25, orientation = 'h'),
