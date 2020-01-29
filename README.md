@@ -1,10 +1,12 @@
 # Twisted Probabilities, Uncerntainty, and Prices
-This repository contains codes and jupyter notebooks which estimates and demonstrates results of the empirical model in "Twisted Probabilities, Uncerntainty, and Prices" by [Lars Peter Hansen][id1], [Bálint Szőke][id2] and Lloyd S. Han and [Thomas J. Sargent][id3]. Latest version could be found [here][id4].
+This repository contains codes and jupyter notebooks which estimates and demonstrates results of the empirical model in "Twisted Probabilities, Uncerntainty, and Prices" by [Lars Peter Hansen][id1], [Bálint Szőke][id2] and [Lloyd S. Han][id5] and [Thomas J. Sargent][id3]. Latest version could be found [here][id4].
 
 [id1]: https://larspeterhansen.org/
 [id2]: https://www.balintszoke.com/
 [id3]: http://www.tomsargent.com/
 [id4]: https://larspeterhansen.org/research/papers/
+[id5]: https://sites.google.com/site/lloydhan/
+
 
 ## File structures
 1. __main.ipynb__ is a Python 3 based notebook producing interactive figures accompanying our paper
