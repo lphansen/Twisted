@@ -16,7 +16,7 @@ We have a Binder for users to play with our notebook without setting up files on
 
 ## Prerequisites
 
-This project simply requires the Anaconda distribution of Python version 3.x and Julia 1.0 or higher versions. Additional dependencies and prerequisites are handled automatically in setup.
+This project simply requires the Anaconda distribution of __Python version 3.6__ and __Julia 1.0__ or higher versions. Additional dependencies and prerequisites are handled automatically in setup.
 
 ## Installing and activating the environment 
 
